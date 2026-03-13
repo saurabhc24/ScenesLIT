@@ -1,20 +1,19 @@
 /**
- * Insider.in / District by Zomato — Unofficial JSON API
+ * District (district.in) — Unofficial JSON API
  *
  * ⚠️  FINDING THE CORRECT ENDPOINT:
- * Since Insider.in rebranded to District by Zomato, the API URL may have changed.
- * To find the current endpoint:
- *   1. Open https://insider.in in Chrome
- *   2. Open DevTools → Network tab → filter by "Fetch/XHR"
- *   3. Click on an event listing page (e.g. "Mumbai" tab)
- *   4. Look for API calls returning JSON arrays of events
- *   5. Copy that URL and update BASE + LISTING_PATH below
+ * To find the current API endpoint:
+ *   1. Open https://district.in in Chrome
+ *   2. Open DevTools (F12) → Network tab → filter by "Fetch/XHR"
+ *   3. Browse to a city page (e.g. district.in/mumbai)
+ *   4. Look for XHR requests returning a JSON array/object of events
+ *   5. Copy the base URL and path, update BASE + LISTING_PATH below
  *
- * Known historical endpoint (may still work):
- *   https://api.insider.in/api/v1/event?city=mumbai&page=0&per_page=40&type=upcoming
+ * Then update source_url below from insider.in → district.in
  */
 
-const BASE = 'https://api.insider.in'
+// TODO: Update these once you find the correct endpoint via DevTools
+const BASE = 'https://api.district.in'
 const LISTING_PATH = '/api/v1/event'
 
 const CITY_SLUGS = {
@@ -32,12 +31,12 @@ const CITY_SLUGS = {
 const HEADERS = {
   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
   Accept: 'application/json',
-  Referer: 'https://insider.in/',
+  Referer: 'https://district.in/',
 }
 
 const MAX_PAGES = 5
 
-export async function scrapeInsider(city) {
+export async function scrapeDistrict(city) {
   const citySlug = CITY_SLUGS[city]
   if (!citySlug) {
     console.warn(`[Insider] No city slug for "${city}" — skipping`)
@@ -64,8 +63,8 @@ export async function scrapeInsider(city) {
       if (!res.ok) {
         if (page === 0) {
           console.warn(
-            `[Insider] HTTP ${res.status} — endpoint may have changed. ` +
-              `See instructions at top of insider.js to find the current URL.`
+            `[District] HTTP ${res.status} — update BASE + LISTING_PATH in district.js ` +
+              `(see DevTools instructions at top of file)`
           )
         }
         break
@@ -74,8 +73,8 @@ export async function scrapeInsider(city) {
     } catch (err) {
       if (page === 0) {
         console.warn(
-          `[Insider] Connection failed (${err.message}) — ` +
-            `endpoint may have changed since District rebrand.`
+          `[District] Connection failed (${err.message}) — ` +
+            `update BASE + LISTING_PATH in district.js once you find the correct endpoint`
         )
       }
       break
@@ -116,8 +115,8 @@ export async function scrapeInsider(city) {
           price_min: ev.min_price ?? ev.price_min ?? null,
           price_max: ev.max_price ?? ev.price_max ?? null,
           currency: 'INR',
-          source_platform: 'insider',
-          source_url: slug ? `https://insider.in/${slug}` : 'https://insider.in',
+          source_platform: 'district',
+          source_url: slug ? `https://district.in/${slug}` : 'https://district.in',
           image_url:
             ev.horizontal_cover_image ??
             ev.cover_image ??
@@ -125,7 +124,7 @@ export async function scrapeInsider(city) {
             ev.thumbnail ??
             null,
           popularity_score: ev.popularity_score ?? 0,
-          external_id: `insider_${ev._id ?? ev.id ?? slug}`,
+          external_id: `district_${ev._id ?? ev.id ?? slug}`,
         },
       })
     }

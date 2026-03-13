@@ -1,5 +1,5 @@
 import { scrapeEventbrite } from './sources/eventbrite.js'
-import { scrapeInsider } from './sources/insider.js'
+import { scrapeDistrict } from './sources/district.js'
 import { scrapeTicketmaster } from './sources/ticketmaster.js'
 import { ensureCategory, upsertVenue, upsertEvent } from './lib/db.js'
 
@@ -10,7 +10,7 @@ const CITIES = (
 ).split(',').map((c) => c.trim())
 
 const SOURCES = [
-  { name: 'Insider.in', fn: scrapeInsider },
+  { name: 'District', fn: scrapeDistrict },
   { name: 'Eventbrite', fn: scrapeEventbrite },
   { name: 'Ticketmaster', fn: scrapeTicketmaster },
 ]
