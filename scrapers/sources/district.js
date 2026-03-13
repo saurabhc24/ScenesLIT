@@ -1,11 +1,10 @@
 /**
- * District (district.in) — Playwright-based scraper
+ * District (district.in) — JSON-LD scraper
  *
- * Uses a headless browser to intercept the API calls the website makes,
- * so no manual endpoint discovery is needed. Works even if the API URL changes.
- *
- * First run on a new machine: npx playwright install chromium
- * (done automatically by the GitHub Actions workflow)
+ * Step 1: Playwright fetches the listing page (JS-rendered) to collect event URLs
+ * Step 2: Each event page is fetched with native fetch() in parallel,
+ *         and structured data is extracted from the JSON-LD <script> tag
+ *         (Schema.org Event — includes lat/lng, price, dates, image)
  */
 
 import { chromium } from 'playwright'
@@ -22,17 +21,119 @@ const CITY_SLUGS = {
   Goa: 'goa',
 }
 
-function isEventListResponse(body) {
-  if (!body || typeof body !== 'object') return false
-  const arr = Array.isArray(body)
-    ? body
-    : (body.data ?? body.events ?? body.results ?? null)
-  return Array.isArray(arr) && arr.length > 0 && (arr[0].name || arr[0].title)
+const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+const CONCURRENT_TABS = 5
+
+// Extract JSON-LD from a Playwright page
+async function extractJsonLd(page, url) {
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 })
+  await page.waitForTimeout(2000)
+  try {
+    return await page.$eval(
+      'script[type="application/ld+json"]',
+      (el) => JSON.parse(el.textContent)
+    )
+  } catch {
+    return null
+  }
 }
 
-function extractEvents(body) {
-  if (Array.isArray(body)) return body
-  return body.data ?? body.events ?? body.results ?? []
+// Get all event URLs from listing page + collect JSON-LD in one browser session
+async function scrapeWithBrowser(citySlug) {
+  const browser = await chromium.launch({ headless: true })
+  try {
+    const context = await browser.newContext({ userAgent: UA })
+
+    // Step 1: get event URLs from listing page
+    const listPage = await context.newPage()
+    await listPage.goto(`https://district.in/events?city=${citySlug}`, {
+      waitUntil: 'domcontentloaded',
+      timeout: 30000,
+    })
+    await listPage.waitForTimeout(4000)
+
+    // Scroll to trigger lazy loading
+    for (let i = 0; i < 3; i++) {
+      await listPage.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+      await listPage.waitForTimeout(1500)
+    }
+
+    const eventUrls = await listPage.$$eval('a[href*="/events/"]', (els) =>
+      [
+        ...new Set(
+          els
+            .map((el) => el.href)
+            .filter((h) => h.includes('/events/') && h !== 'https://www.district.in/events/')
+        ),
+      ]
+    )
+    await listPage.close()
+
+    if (eventUrls.length === 0) return []
+
+    // Step 2: fetch each event page in parallel batches using multiple tabs
+    const results = []
+    for (let i = 0; i < eventUrls.length; i += CONCURRENT_TABS) {
+      const batch = eventUrls.slice(i, i + CONCURRENT_TABS)
+      const pages = await Promise.all(batch.map(() => context.newPage()))
+
+      const settled = await Promise.allSettled(
+        pages.map((p, idx) => extractJsonLd(p, batch[idx]))
+      )
+
+      await Promise.all(pages.map((p) => p.close()))
+
+      for (const outcome of settled) {
+        if (outcome.status === 'fulfilled' && outcome.value) {
+          results.push(outcome.value)
+        }
+      }
+    }
+
+    return results
+  } finally {
+    await browser.close()
+  }
+}
+
+// Map JSON-LD Event schema to our DB shape
+function mapJsonLd(ld, city) {
+  const geo = ld.location?.geo
+  if (!geo?.latitude || !geo?.longitude) return null
+
+  const offers = ld.offers
+  const priceMin = offers?.lowPrice ?? offers?.price ?? null
+  const priceMax = offers?.highPrice ?? offers?.price ?? null
+  const currency = offers?.priceCurrency ?? offers?.offers?.[0]?.priceCurrency ?? 'INR'
+
+  const keywords = ld.keywords?.content || ''
+  const categoryName = keywords.split(',')[1]?.trim() || 'Events'
+
+  return {
+    venue: {
+      name: ld.location.name || 'Unknown Venue',
+      address: ld.location.address || '',
+      city,
+      latitude: parseFloat(geo.latitude),
+      longitude: parseFloat(geo.longitude),
+    },
+    event: {
+      title: ld.name || 'Untitled',
+      description: ld.description?.replace(/&nbsp;/g, ' ').trim() || null,
+      category_name: categoryName,
+      city,
+      start_time: ld.startDate ?? null,
+      end_time: ld.endDate ?? null,
+      price_min: priceMin,
+      price_max: priceMax,
+      currency,
+      source_platform: 'district',
+      source_url: ld.url || '',
+      image_url: ld.image || null,
+      popularity_score: 0,
+      external_id: `district_${ld.url?.split('/events/')?.[1]?.replace('-buy-tickets', '') ?? ld.name}`,
+    },
+  }
 }
 
 export async function scrapeDistrict(city) {
@@ -42,99 +143,14 @@ export async function scrapeDistrict(city) {
     return []
   }
 
-  let browser
-  const intercepted = []
-
+  let ldItems = []
   try {
-    browser = await chromium.launch({ headless: true })
-    const context = await browser.newContext({
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-    })
-    const page = await context.newPage()
-
-    // Intercept all API responses that look like event lists
-    page.on('response', async (response) => {
-      const url = response.url()
-      const contentType = response.headers()['content-type'] || ''
-      if (!contentType.includes('application/json')) return
-      if (!url.includes('event') && !url.includes('listing') && !url.includes('discover')) return
-
-      try {
-        const body = await response.json()
-        if (isEventListResponse(body)) {
-          console.log(`[District] Intercepted: ${url.slice(0, 80)}`)
-          intercepted.push(...extractEvents(body))
-        }
-      } catch {
-        // parse error — skip
-      }
-    })
-
-    await page.goto(`https://district.in/events?city=${citySlug}`, {
-      waitUntil: 'networkidle',
-      timeout: 30000,
-    })
-
-    // Scroll to trigger lazy-loaded content
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
-    await page.waitForTimeout(2000)
-
+    ldItems = await scrapeWithBrowser(citySlug)
+    console.log(`[District] Fetched ${ldItems.length} event pages for ${city}`)
   } catch (err) {
-    console.error(`[District] Browser error for ${city}: ${err.message}`)
-    return []
-  } finally {
-    await browser?.close()
-  }
-
-  if (intercepted.length === 0) {
-    console.warn(`[District] No events intercepted for ${city} — site structure may have changed`)
+    console.error(`[District] Browser failed for ${city}: ${err.message}`)
     return []
   }
 
-  console.log(`[District] Got ${intercepted.length} raw events for ${city}`)
-
-  const results = []
-  for (const ev of intercepted) {
-    const venue = ev.venue ?? ev.venues?.[0] ?? null
-    const lat = venue?.geo?.lat ?? venue?.latitude
-    const lng = venue?.geo?.lng ?? venue?.longitude ?? venue?.lon
-    if (!lat || !lng) continue
-
-    const slug = ev.slug || ev._id || ev.id
-    const categoryName =
-      ev.tags?.[0]?.name ?? ev.category?.name ?? ev.type ?? 'Events'
-
-    results.push({
-      venue: {
-        name: venue.name || 'Unknown Venue',
-        address: venue.address || venue.location || '',
-        city,
-        latitude: parseFloat(lat),
-        longitude: parseFloat(lng),
-      },
-      event: {
-        title: ev.name || ev.title || 'Untitled',
-        description: ev.description || null,
-        category_name: categoryName,
-        city,
-        start_time: ev.start_utc ?? ev.start_time ?? ev.startTime ?? null,
-        end_time: ev.end_utc ?? ev.end_time ?? ev.endTime ?? null,
-        price_min: ev.min_price ?? ev.price_min ?? null,
-        price_max: ev.max_price ?? ev.price_max ?? null,
-        currency: 'INR',
-        source_platform: 'district',
-        source_url: slug ? `https://district.in/${slug}` : 'https://district.in',
-        image_url:
-          ev.horizontal_cover_image ??
-          ev.cover_image ??
-          ev.image ??
-          ev.thumbnail ??
-          null,
-        popularity_score: ev.popularity_score ?? 0,
-        external_id: `district_${ev._id ?? ev.id ?? slug}`,
-      },
-    })
-  }
-
-  return results
+  return ldItems.map((ld) => mapJsonLd(ld, city)).filter(Boolean)
 }

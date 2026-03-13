@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
+scrapers/.env
 
 # Claude Code internal files
 .claude/
