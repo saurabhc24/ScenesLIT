@@ -8,26 +8,6 @@ import { useEvents } from './hooks/useEvents'
 import { useCategories } from './hooks/useCategories'
 import { useGeolocation } from './hooks/useGeolocation'
 
-const CITY_CENTERS = [
-  { name: 'Mumbai',    lat: 18.9388, lng: 72.8354 },
-  { name: 'Delhi',     lat: 28.6139, lng: 77.2090 },
-  { name: 'Bengaluru', lat: 12.9716, lng: 77.5946 },
-  { name: 'Hyderabad', lat: 17.3850, lng: 78.4867 },
-  { name: 'Chennai',   lat: 13.0827, lng: 80.2707 },
-  { name: 'Pune',      lat: 18.5204, lng: 73.8567 },
-  { name: 'Kolkata',   lat: 22.5726, lng: 88.3639 },
-  { name: 'Ahmedabad', lat: 23.0225, lng: 72.5714 },
-  { name: 'Goa',       lat: 15.2993, lng: 74.1240 },
-]
-
-function getNearestCity(lat, lng) {
-  let nearest = null, minDist = Infinity
-  for (const city of CITY_CENTERS) {
-    const d = (lat - city.lat) ** 2 + (lng - city.lng) ** 2
-    if (d < minDist) { minDist = d; nearest = city.name }
-  }
-  return minDist < 4 ? nearest : null // within ~2° (~220 km)
-}
 
 export default function App() {
   const [searchTerm, setSearchTerm] = useState('')
@@ -57,21 +37,20 @@ export default function App() {
   const { location: userLocation, showDialog, handleAllow, handleSelectCity } = useGeolocation()
   const { categories, loading: categoriesLoading } = useCategories()
 
-  const [selectedCity, setSelectedCity] = useState(null)
-  const cityFromLocSet = useRef(false)
+  const [mapCenter, setMapCenter] = useState({ lat: null, lng: null })
+  const centerFromLocSet = useRef(false)
   useEffect(() => {
-    if (userLocation?.lat && !cityFromLocSet.current) {
-      cityFromLocSet.current = true
-      setSelectedCity(getNearestCity(userLocation.lat, userLocation.lng))
+    if (userLocation?.lat && !centerFromLocSet.current) {
+      centerFromLocSet.current = true
+      setMapCenter({ lat: userLocation.lat, lng: userLocation.lng })
     }
   }, [userLocation])
 
   const handleMapCityChange = useCallback((lat, lng) => {
-    const city = getNearestCity(lat, lng)
-    setSelectedCity(prev => city !== prev ? city : prev)
+    setMapCenter(prev => (prev.lat === lat && prev.lng === lng) ? prev : { lat, lng })
   }, [])
 
-  const { events, loading: eventsLoading } = useEvents({ searchTerm, categoryId: selectedCategory, city: selectedCity })
+  const { events, loading: eventsLoading } = useEvents({ searchTerm, categoryId: selectedCategory, lat: mapCenter.lat, lng: mapCenter.lng })
 
   const handleEventClick = useCallback((event) => {
     setSelectedEventId(event.id)
