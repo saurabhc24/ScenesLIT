@@ -26,6 +26,10 @@ jobs:
         working-directory: ./scrapers
         run: npm install
 
+      - name: Install Playwright browsers
+        working-directory: ./scrapers
+        run: npx playwright install chromium --with-deps
+
       - name: Run scrapers
         working-directory: ./scrapers
         run: node index.js

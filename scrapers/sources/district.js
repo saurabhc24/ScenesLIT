@@ -1,20 +1,14 @@
 /**
- * District (district.in) — Unofficial JSON API
+ * District (district.in) — Playwright-based scraper
  *
- * ⚠️  FINDING THE CORRECT ENDPOINT:
- * To find the current API endpoint:
- *   1. Open https://district.in in Chrome
- *   2. Open DevTools (F12) → Network tab → filter by "Fetch/XHR"
- *   3. Browse to a city page (e.g. district.in/mumbai)
- *   4. Look for XHR requests returning a JSON array/object of events
- *   5. Copy the base URL and path, update BASE + LISTING_PATH below
+ * Uses a headless browser to intercept the API calls the website makes,
+ * so no manual endpoint discovery is needed. Works even if the API URL changes.
  *
- * Then update source_url below from insider.in → district.in
+ * First run on a new machine: npx playwright install chromium
+ * (done automatically by the GitHub Actions workflow)
  */
 
-// TODO: Update these once you find the correct endpoint via DevTools
-const BASE = 'https://api.district.in'
-const LISTING_PATH = '/api/v1/event'
+import { chromium } from 'playwright'
 
 const CITY_SLUGS = {
   Mumbai: 'mumbai',
@@ -28,109 +22,118 @@ const CITY_SLUGS = {
   Goa: 'goa',
 }
 
-const HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-  Accept: 'application/json',
-  Referer: 'https://district.in/',
+function isEventListResponse(body) {
+  if (!body || typeof body !== 'object') return false
+  const arr = Array.isArray(body)
+    ? body
+    : (body.data ?? body.events ?? body.results ?? null)
+  return Array.isArray(arr) && arr.length > 0 && (arr[0].name || arr[0].title)
 }
 
-const MAX_PAGES = 5
+function extractEvents(body) {
+  if (Array.isArray(body)) return body
+  return body.data ?? body.events ?? body.results ?? []
+}
 
 export async function scrapeDistrict(city) {
   const citySlug = CITY_SLUGS[city]
   if (!citySlug) {
-    console.warn(`[Insider] No city slug for "${city}" — skipping`)
+    console.warn(`[District] No city slug for "${city}" — skipping`)
     return []
   }
 
-  const results = []
-  let page = 0
-  let hasMore = true
+  let browser
+  const intercepted = []
 
-  while (hasMore && page < MAX_PAGES) {
-    const params = new URLSearchParams({
-      city: citySlug,
-      page: String(page),
-      per_page: '40',
-      type: 'upcoming',
+  try {
+    browser = await chromium.launch({ headless: true })
+    const context = await browser.newContext({
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+    })
+    const page = await context.newPage()
+
+    // Intercept all API responses that look like event lists
+    page.on('response', async (response) => {
+      const url = response.url()
+      const contentType = response.headers()['content-type'] || ''
+      if (!contentType.includes('application/json')) return
+      if (!url.includes('event') && !url.includes('listing') && !url.includes('discover')) return
+
+      try {
+        const body = await response.json()
+        if (isEventListResponse(body)) {
+          console.log(`[District] Intercepted: ${url.slice(0, 80)}`)
+          intercepted.push(...extractEvents(body))
+        }
+      } catch {
+        // parse error — skip
+      }
     })
 
-    let data
-    try {
-      const res = await fetch(`${BASE}${LISTING_PATH}?${params}`, {
-        headers: HEADERS,
-      })
-      if (!res.ok) {
-        if (page === 0) {
-          console.warn(
-            `[District] HTTP ${res.status} — update BASE + LISTING_PATH in district.js ` +
-              `(see DevTools instructions at top of file)`
-          )
-        }
-        break
-      }
-      data = await res.json()
-    } catch (err) {
-      if (page === 0) {
-        console.warn(
-          `[District] Connection failed (${err.message}) — ` +
-            `update BASE + LISTING_PATH in district.js once you find the correct endpoint`
-        )
-      }
-      break
-    }
+    await page.goto(`https://district.in/events?city=${citySlug}`, {
+      waitUntil: 'networkidle',
+      timeout: 30000,
+    })
 
-    // API may return { data: [...] } or { events: [...] } or a bare array
-    const events = Array.isArray(data)
-      ? data
-      : (data.data ?? data.events ?? [])
+    // Scroll to trigger lazy-loaded content
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+    await page.waitForTimeout(2000)
 
-    if (events.length === 0) break
+  } catch (err) {
+    console.error(`[District] Browser error for ${city}: ${err.message}`)
+    return []
+  } finally {
+    await browser?.close()
+  }
 
-    for (const ev of events) {
-      const venue = ev.venue ?? ev.venues?.[0] ?? null
-      const lat = venue?.geo?.lat ?? venue?.latitude
-      const lng = venue?.geo?.lng ?? venue?.longitude ?? venue?.lon
-      if (!lat || !lng) continue
+  if (intercepted.length === 0) {
+    console.warn(`[District] No events intercepted for ${city} — site structure may have changed`)
+    return []
+  }
 
-      const slug = ev.slug || ev._id || ev.id
-      const categoryName =
-        ev.tags?.[0]?.name ?? ev.category?.name ?? ev.type ?? 'Events'
+  console.log(`[District] Got ${intercepted.length} raw events for ${city}`)
 
-      results.push({
-        venue: {
-          name: venue.name || 'Unknown Venue',
-          address: venue.address || venue.location || '',
-          city,
-          latitude: parseFloat(lat),
-          longitude: parseFloat(lng),
-        },
-        event: {
-          title: ev.name || ev.title || 'Untitled',
-          description: ev.description || null,
-          category_name: categoryName,
-          city,
-          start_time: ev.start_utc ?? ev.start_time ?? ev.startTime ?? null,
-          end_time: ev.end_utc ?? ev.end_time ?? ev.endTime ?? null,
-          price_min: ev.min_price ?? ev.price_min ?? null,
-          price_max: ev.max_price ?? ev.price_max ?? null,
-          currency: 'INR',
-          source_platform: 'district',
-          source_url: slug ? `https://district.in/${slug}` : 'https://district.in',
-          image_url:
-            ev.horizontal_cover_image ??
-            ev.cover_image ??
-            ev.image ??
-            ev.thumbnail ??
-            null,
-          popularity_score: ev.popularity_score ?? 0,
-          external_id: `district_${ev._id ?? ev.id ?? slug}`,
-        },
-      })
-    }
+  const results = []
+  for (const ev of intercepted) {
+    const venue = ev.venue ?? ev.venues?.[0] ?? null
+    const lat = venue?.geo?.lat ?? venue?.latitude
+    const lng = venue?.geo?.lng ?? venue?.longitude ?? venue?.lon
+    if (!lat || !lng) continue
 
-    hasMore = events.length === 40
-    page++
+    const slug = ev.slug || ev._id || ev.id
+    const categoryName =
+      ev.tags?.[0]?.name ?? ev.category?.name ?? ev.type ?? 'Events'
+
+    results.push({
+      venue: {
+        name: venue.name || 'Unknown Venue',
+        address: venue.address || venue.location || '',
+        city,
+        latitude: parseFloat(lat),
+        longitude: parseFloat(lng),
+      },
+      event: {
+        title: ev.name || ev.title || 'Untitled',
+        description: ev.description || null,
+        category_name: categoryName,
+        city,
+        start_time: ev.start_utc ?? ev.start_time ?? ev.startTime ?? null,
+        end_time: ev.end_utc ?? ev.end_time ?? ev.endTime ?? null,
+        price_min: ev.min_price ?? ev.price_min ?? null,
+        price_max: ev.max_price ?? ev.price_max ?? null,
+        currency: 'INR',
+        source_platform: 'district',
+        source_url: slug ? `https://district.in/${slug}` : 'https://district.in',
+        image_url:
+          ev.horizontal_cover_image ??
+          ev.cover_image ??
+          ev.image ??
+          ev.thumbnail ??
+          null,
+        popularity_score: ev.popularity_score ?? 0,
+        external_id: `district_${ev._id ?? ev.id ?? slug}`,
+      },
+    })
   }
 
   return results

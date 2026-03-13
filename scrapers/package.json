@@ -6,6 +6,7 @@
     "scrape": "node index.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.49.1"
+    "@supabase/supabase-js": "^2.49.1",
+    "playwright": "^1.58.2"
   }
 }
