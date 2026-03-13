@@ -5,27 +5,31 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 )
 
-const CATEGORY_ICONS = {
-  music: '🎵', concert: '🎵',
-  comedy: '😂', stand: '😂',
-  food: '🍕', dining: '🍕',
-  festival: '🎪', fair: '🎪',
-  sport: '⚽', fitness: '🏃',
-  art: '🎨', exhibition: '🎨',
-  theatre: '🎭', theater: '🎭', drama: '🎭',
-  nightlife: '🌙', party: '🌙', club: '🌙',
-  workshop: '🔧', class: '🔧',
-  tech: '💻', startup: '💻',
-  film: '🎬', movie: '🎬',
-  kids: '🧒', family: '🧒',
-}
+const CANONICAL_CATEGORIES = [
+  { name: 'Music',           icon: '🎵', keywords: ['music', 'concert', 'live music', 'band', 'dj', 'jazz', 'pop', 'rock', 'classical', 'bollywood', 'gig'] },
+  { name: 'Comedy',          icon: '😂', keywords: ['comedy', 'stand-up', 'standup', 'improv', 'humour', 'humor', 'comic'] },
+  { name: 'Theatre',         icon: '🎭', keywords: ['theatre', 'theater', 'drama', 'play', 'musical', 'opera', 'dance performance', 'ballet'] },
+  { name: 'Nightlife',       icon: '🌙', keywords: ['nightlife', 'party', 'club', 'rave', 'edm', 'electronic', 'disco', 'karaoke'] },
+  { name: 'Festivals',       icon: '🎪', keywords: ['festival', 'fair', 'carnival', 'mela', 'celebration', 'cultural', 'fete'] },
+  { name: 'Art & Culture',   icon: '🎨', keywords: ['art', 'exhibition', 'gallery', 'culture', 'craft', 'design', 'photography', 'museum'] },
+  { name: 'Food & Drink',    icon: '🍕', keywords: ['food', 'dining', 'restaurant', 'culinary', 'drinks', 'brunch', 'tasting', 'gastronomy', 'wine', 'beer', 'chef'] },
+  { name: 'Sports & Fitness',icon: '⚽', keywords: ['sport', 'fitness', 'yoga', 'marathon', 'gym', 'match', 'tournament', 'race', 'cycling', 'cricket', 'football'] },
+  { name: 'Workshops',       icon: '🔧', keywords: ['workshop', 'class', 'course', 'training', 'seminar', 'masterclass', 'bootcamp', 'session', 'learn'] },
+  { name: 'Technology',      icon: '💻', keywords: ['tech', 'startup', 'hackathon', 'developer', 'coding', 'ai', 'software', 'innovation', 'product'] },
+  { name: 'Cinema',          icon: '🎬', keywords: ['film', 'movie', 'cinema', 'screening', 'documentary'] },
+  { name: 'Kids & Family',   icon: '🧒', keywords: ['kids', 'family', 'children', 'child', 'baby', 'toddler'] },
+  { name: 'Dance',           icon: '💃', keywords: ['dance', 'salsa', 'bachata', 'hip-hop', 'hip hop', 'contemporary', 'zumba', 'kathak', 'bharatnatyam'] },
+  { name: 'Wellness',        icon: '🧘', keywords: ['wellness', 'meditation', 'mindfulness', 'spa', 'healing', 'sound bath', 'breathwork'] },
+]
 
-function iconForCategory(name = '') {
-  const lower = name.toLowerCase()
-  for (const [keyword, icon] of Object.entries(CATEGORY_ICONS)) {
-    if (lower.includes(keyword)) return icon
+function normalizeCategory(raw = '') {
+  const lower = raw.toLowerCase()
+  for (const cat of CANONICAL_CATEGORIES) {
+    if (cat.keywords.some((kw) => lower.includes(kw))) {
+      return { name: cat.name, icon: cat.icon }
+    }
   }
-  return '🎭'
+  return { name: 'Events', icon: '🎭' }
 }
 
 let _categories = null
@@ -38,7 +42,8 @@ async function loadCategories() {
   return _categories
 }
 
-export async function ensureCategory(name) {
+export async function ensureCategory(rawName) {
+  const { name, icon } = normalizeCategory(rawName)
   const categories = await loadCategories()
   const existing = categories.find(
     (c) => c.name.toLowerCase() === name.toLowerCase()
@@ -47,7 +52,7 @@ export async function ensureCategory(name) {
 
   const { data, error } = await supabase
     .from('categories')
-    .insert({ name, icon: iconForCategory(name) })
+    .insert({ name, icon })
     .select('id')
     .single()
   if (error) throw error

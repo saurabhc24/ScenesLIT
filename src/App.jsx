@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import Navbar from './components/Navbar'
 import SidebarPanel from './components/SidebarPanel'
 import MapView from './components/MapView'
@@ -7,6 +7,27 @@ import LocationPermissionDialog from './components/LocationPermissionDialog'
 import { useEvents } from './hooks/useEvents'
 import { useCategories } from './hooks/useCategories'
 import { useGeolocation } from './hooks/useGeolocation'
+
+const CITY_CENTERS = [
+  { name: 'Mumbai',    lat: 18.9388, lng: 72.8354 },
+  { name: 'Delhi',     lat: 28.6139, lng: 77.2090 },
+  { name: 'Bengaluru', lat: 12.9716, lng: 77.5946 },
+  { name: 'Hyderabad', lat: 17.3850, lng: 78.4867 },
+  { name: 'Chennai',   lat: 13.0827, lng: 80.2707 },
+  { name: 'Pune',      lat: 18.5204, lng: 73.8567 },
+  { name: 'Kolkata',   lat: 22.5726, lng: 88.3639 },
+  { name: 'Ahmedabad', lat: 23.0225, lng: 72.5714 },
+  { name: 'Goa',       lat: 15.2993, lng: 74.1240 },
+]
+
+function getNearestCity(lat, lng) {
+  let nearest = null, minDist = Infinity
+  for (const city of CITY_CENTERS) {
+    const d = (lat - city.lat) ** 2 + (lng - city.lng) ** 2
+    if (d < minDist) { minDist = d; nearest = city.name }
+  }
+  return minDist < 4 ? nearest : null // within ~2° (~220 km)
+}
 
 export default function App() {
   const [searchTerm, setSearchTerm] = useState('')
@@ -35,7 +56,22 @@ export default function App() {
 
   const { location: userLocation, showDialog, handleAllow, handleSelectCity } = useGeolocation()
   const { categories, loading: categoriesLoading } = useCategories()
-  const { events, loading: eventsLoading } = useEvents({ searchTerm, categoryId: selectedCategory })
+
+  const [selectedCity, setSelectedCity] = useState(null)
+  const cityFromLocSet = useRef(false)
+  useEffect(() => {
+    if (userLocation?.lat && !cityFromLocSet.current) {
+      cityFromLocSet.current = true
+      setSelectedCity(getNearestCity(userLocation.lat, userLocation.lng))
+    }
+  }, [userLocation])
+
+  const handleMapCityChange = useCallback((lat, lng) => {
+    const city = getNearestCity(lat, lng)
+    setSelectedCity(prev => city !== prev ? city : prev)
+  }, [])
+
+  const { events, loading: eventsLoading } = useEvents({ searchTerm, categoryId: selectedCategory, city: selectedCity })
 
   const handleEventClick = useCallback((event) => {
     setSelectedEventId(event.id)
@@ -110,7 +146,7 @@ export default function App() {
           />
         </div>
         <div className="flex-1 border border-gray-200 dark:border-gray-700 rounded-[20px] overflow-hidden">
-          <MapView ref={mapRef} events={events} userLocation={userLocation} mode="desktop" hoveredEventId={hoveredEventId} />
+          <MapView ref={mapRef} events={events} userLocation={userLocation} mode="desktop" hoveredEventId={hoveredEventId} onCityChange={handleMapCityChange} />
         </div>
       </div>
 
@@ -147,7 +183,7 @@ export default function App() {
 
         {/* Map — fills remaining space, rounded corners, subtle border */}
         <div className="flex-1 min-h-0 rounded-2xl overflow-hidden" style={{ border: '0.5px solid #C8C8C8' }}>
-          <MapView ref={mapRef} events={events} userLocation={userLocation} mode="mobile" />
+          <MapView ref={mapRef} events={events} userLocation={userLocation} mode="mobile" onCityChange={handleMapCityChange} />
         </div>
       </div>
 

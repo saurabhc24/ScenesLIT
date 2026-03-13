@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
-export function useEvents({ searchTerm = '', categoryId = null } = {}) {
+export function useEvents({ searchTerm = '', categoryId = null, city = null } = {}) {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -25,6 +25,10 @@ export function useEvents({ searchTerm = '', categoryId = null } = {}) {
         query = query.eq('category_id', categoryId)
       }
 
+      if (city) {
+        query = query.eq('city', city)
+      }
+
       const { data, error } = await query
 
       if (error) {
@@ -36,7 +40,7 @@ export function useEvents({ searchTerm = '', categoryId = null } = {}) {
     }
 
     fetchEvents()
-  }, [searchTerm, categoryId])
+  }, [searchTerm, categoryId, city])
 
   return { events, loading, error }
 }

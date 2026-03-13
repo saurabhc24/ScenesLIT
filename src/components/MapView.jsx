@@ -157,7 +157,7 @@ const USER_LOCATION_ICON = L.divIcon({
 })
 
 /** Individual event marker with click and long-press */
-function EventMarker({ event, onLongPress, isHovered }) {
+function EventMarker({ event, onLongPress, isHovered, mode }) {
   const longPressTimer = useRef(null)
   const didLongPress = useRef(false)
   const venue = event.venues
@@ -181,7 +181,11 @@ function EventMarker({ event, onLongPress, isHovered }) {
   }
 
   function handleClick() {
-    if (!didLongPress.current && event.source_url) {
+    if (didLongPress.current) return
+    if (mode === 'mobile') {
+      // On mobile: tap shows the info card (EventPopup)
+      onLongPress(event)
+    } else if (event.source_url) {
       window.open(event.source_url, '_blank', 'noopener,noreferrer')
     }
   }
@@ -210,7 +214,7 @@ function EventMarker({ event, onLongPress, isHovered }) {
  * Mobile: fits bounds to show all events on first load.
  * Also renders the user location dot and "My location" button.
  */
-function MapControls({ userLocation, showBtn, setShowBtn }) {
+function MapControls({ userLocation, showBtn, setShowBtn, onCityChange }) {
   const map = useMap()
   const initialFit = useRef(false)
 
@@ -224,9 +228,11 @@ function MapControls({ userLocation, showBtn, setShowBtn }) {
 
   useMapEvents({
     moveend() {
-      if (!validLoc) return
       const c = map.getCenter()
-      setShowBtn(distanceDeg([c.lat, c.lng], [userLocation.lat, userLocation.lng]) > LOCATION_THRESHOLD)
+      if (validLoc) {
+        setShowBtn(distanceDeg([c.lat, c.lng], [userLocation.lat, userLocation.lng]) > LOCATION_THRESHOLD)
+      }
+      onCityChange?.(c.lat, c.lng)
     },
   })
 
@@ -278,7 +284,7 @@ function FlyToHelper({ mapRef }) {
   return null
 }
 
-const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desktop', hoveredEventId = null }, ref) {
+const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desktop', hoveredEventId = null, onCityChange = null }, ref) {
   const [popupEvent, setPopupEvent] = useState(null)
   const [clusterEvents, setClusterEvents] = useState([])
   const [showLocationBtn, setShowLocationBtn] = useState(false)
@@ -330,6 +336,7 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
           userLocation={userLocation}
           showBtn={showLocationBtn}
           setShowBtn={setShowLocationBtn}
+          onCityChange={onCityChange}
         />
 
         <MarkerClusterGroup
@@ -348,6 +355,7 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
                 event={event}
                 onLongPress={handleLongPress}
                 isHovered={event.id === hoveredEventId}
+                mode={mode}
               />
             ))}
         </MarkerClusterGroup>

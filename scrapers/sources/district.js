@@ -131,8 +131,18 @@ function mapJsonLd(ld, city) {
   const priceMax = offers?.highPrice ?? offers?.price ?? null
   const currency = offers?.priceCurrency ?? offers?.offers?.[0]?.priceCurrency ?? 'INR'
 
-  const keywords = ld.keywords?.content || ''
-  const categoryName = keywords.split(',')[1]?.trim() || 'Events'
+  // @type can be 'MusicEvent', 'ComedyEvent', 'SportsEvent', etc.
+  // Otherwise parse the keywords string: "Events, Music & Nightlife, Mumbai, ..."
+  const ldType = Array.isArray(ld['@type']) ? ld['@type'][0] : ld['@type']
+  let categoryName = 'Events'
+  if (ldType && ldType !== 'Event') {
+    categoryName = ldType.replace(/Event$/, '').trim() || 'Events'
+  } else {
+    const rawKw = typeof ld.keywords === 'string'
+      ? ld.keywords
+      : Array.isArray(ld.keywords) ? ld.keywords.join(', ') : ''
+    categoryName = rawKw.split(',')[1]?.trim() || 'Events'
+  }
 
   return {
     venue: {
