@@ -70,7 +70,7 @@ export default function EventPopup({ event, onClose }) {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 md:dark:from-indigo-950 md:dark:to-purple-950">
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-50 to-rose-50 md:dark:from-red-950 md:dark:to-rose-950">
               <span className="text-5xl">🎭</span>
             </div>
           )}
@@ -111,7 +111,7 @@ export default function EventPopup({ event, onClose }) {
           </div>
 
           <div className="flex items-center justify-between pt-1">
-            <span className="text-lg font-bold text-indigo-600">{price}</span>
+            <span className="text-lg font-bold text-primary">{price}</span>
             {event.source_platform && (
               <span className="text-xs text-gray-400 md:dark:text-gray-400 capitalize">{event.source_platform}</span>
             )}
@@ -119,7 +119,7 @@ export default function EventPopup({ event, onClose }) {
 
           <button
             onClick={handleGetTickets}
-            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-colors"
+            className="w-full py-2.5 bg-primary hover:bg-primary/90 text-white text-sm font-semibold rounded-xl transition-colors"
           >
             Get Tickets →
           </button>

@@ -4,7 +4,7 @@ export default function Navbar({ searchTerm, onSearchChange, darkMode, onToggleD
       {/* Logo */}
       <div className="flex items-center gap-1.5 select-none">
         <span className="text-xl font-black tracking-tight text-gray-900 dark:text-white">Scenes</span>
-        <span className="text-xl font-black tracking-tight text-indigo-600">LIT</span>
+        <span className="text-xl font-black tracking-tight text-primary">LIT</span>
       </div>
 
       {/* Search */}
@@ -24,7 +24,7 @@ export default function Navbar({ searchTerm, onSearchChange, darkMode, onToggleD
             placeholder="Search events, venues..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 rounded-full bg-gray-100 dark:bg-gray-800 text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-400 outline-none focus:ring-2 focus:ring-indigo-300 transition"
+            className="w-full pl-10 pr-4 py-2 rounded-full bg-gray-100 dark:bg-gray-800 text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-400 outline-none focus:ring-2 focus:ring-primary/30 transition"
           />
           {searchTerm && (
             <button

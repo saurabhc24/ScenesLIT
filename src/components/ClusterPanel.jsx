@@ -103,7 +103,7 @@ export default function ClusterPanel({ events, onClose, onEventClick }) {
                     <p className="text-xs font-semibold text-gray-500 md:dark:text-gray-300 mt-0.5">{date}</p>
                   )}
                   <div className="flex items-center justify-between mt-1">
-                    <p className="text-xs font-semibold text-indigo-500">{price}</p>
+                    <p className="text-xs font-semibold text-primary">{price}</p>
                     {event.source_platform && (
                       <span className="text-[10px] font-semibold capitalize text-gray-400 md:dark:text-gray-400">
                         {event.source_platform}

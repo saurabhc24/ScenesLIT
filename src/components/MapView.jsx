@@ -122,12 +122,12 @@ const USER_LOCATION_ICON = L.divIcon({
     <div style="position:relative;width:20px;height:20px;display:flex;align-items:center;justify-content:center;">
       <div style="
         position:absolute;width:20px;height:20px;border-radius:50%;
-        background:rgba(79,70,229,0.2);animation:sceneslit-pulse 2s infinite;
+        background:rgba(215,38,56,0.2);animation:sceneslit-pulse 2s infinite;
       "></div>
       <div style="
         width:12px;height:12px;border-radius:50%;
-        background:#4f46e5;border:2.5px solid #fff;
-        box-shadow:0 0 0 2px rgba(79,70,229,0.4);
+        background:#D72638;border:2.5px solid #fff;
+        box-shadow:0 0 0 2px rgba(215,38,56,0.4);
         position:relative;z-index:1;
       "></div>
     </div>
@@ -226,7 +226,7 @@ function MapControls({ userLocation, showBtn, setShowBtn }) {
               title="Go to my location"
               className="flex items-center gap-1.5 px-3 py-2 bg-white text-gray-700 text-xs font-semibold rounded-full shadow-md border border-gray-200 hover:bg-gray-50 active:scale-95 transition-all"
             >
-              <svg className="w-4 h-4 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <svg className="w-4 h-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <circle cx="12" cy="12" r="4" strokeWidth="2" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
                   d="M12 2v3M12 19v3M2 12h3M19 12h3" />

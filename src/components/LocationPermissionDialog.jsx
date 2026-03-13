@@ -16,8 +16,8 @@ export default function LocationPermissionDialog({ open, onAllow, onSelectCity }
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div className="bg-white md:dark:bg-gray-800 rounded-2xl shadow-xl w-[90%] max-w-sm p-6 flex flex-col gap-5 animate-fade-in">
         {/* Icon */}
-        <div className="mx-auto w-14 h-14 bg-indigo-50 md:dark:bg-indigo-950 rounded-full flex items-center justify-center">
-          <svg className="w-7 h-7 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="mx-auto w-14 h-14 bg-primary/10 md:dark:bg-primary/20 rounded-full flex items-center justify-center">
+          <svg className="w-7 h-7 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -32,7 +32,7 @@ export default function LocationPermissionDialog({ open, onAllow, onSelectCity }
 
         <button
           onClick={onAllow}
-          className="w-full py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-colors"
+          className="w-full py-2.5 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-primary/90 transition-colors"
         >
           Allow Location
         </button>
@@ -48,7 +48,7 @@ export default function LocationPermissionDialog({ open, onAllow, onSelectCity }
             <button
               key={city.name}
               onClick={() => onSelectCity(city.lat, city.lng)}
-              className="px-3 py-1.5 bg-gray-100 md:dark:bg-gray-700 text-gray-700 md:dark:text-gray-300 text-xs font-medium rounded-full hover:bg-indigo-50 md:dark:hover:bg-indigo-950 hover:text-indigo-600 md:dark:hover:text-indigo-400 transition-colors"
+              className="px-3 py-1.5 bg-gray-100 md:dark:bg-gray-700 text-gray-700 md:dark:text-gray-300 text-xs font-medium rounded-full hover:bg-primary/10 md:dark:hover:bg-primary/20 hover:text-primary transition-colors"
             >
               {city.name}
             </button>

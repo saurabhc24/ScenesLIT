@@ -44,7 +44,7 @@ export default function EventCard({ event, onClick, isSelected }) {
     <div
       className={`group flex flex-col bg-white dark:bg-gray-800 rounded-xl border overflow-hidden cursor-pointer hover:shadow-md transition-all duration-200 ${
         isSelected
-          ? 'border-indigo-400 ring-2 ring-indigo-100 dark:ring-indigo-900 shadow-md'
+          ? 'border-primary ring-2 ring-primary/10 dark:ring-primary/20 shadow-md'
           : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
       }`}
       onClick={onClick}
@@ -59,7 +59,7 @@ export default function EventCard({ event, onClick, isSelected }) {
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950">
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950 dark:to-rose-950">
             <span className="text-3xl">🎭</span>
           </div>
         )}
@@ -96,7 +96,7 @@ export default function EventCard({ event, onClick, isSelected }) {
           </div>
         )}
 
-        <div className="mt-1 text-sm font-semibold text-indigo-600">
+        <div className="mt-1 text-sm font-semibold text-primary">
           {price}
         </div>
       </div>
