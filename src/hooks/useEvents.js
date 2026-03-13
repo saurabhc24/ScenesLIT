@@ -8,6 +8,7 @@ export function useEvents({ searchTerm = '', categoryId = null } = {}) {
 
   useEffect(() => {
     async function fetchEvents() {
+      if (!supabase) { setLoading(false); return }
       setLoading(true)
 
       let query = supabase

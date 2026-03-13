@@ -8,6 +8,7 @@ export function useCategories() {
 
   useEffect(() => {
     async function fetchCategories() {
+      if (!supabase) { setLoading(false); return }
       const { data, error } = await supabase
         .from('categories')
         .select('*')
