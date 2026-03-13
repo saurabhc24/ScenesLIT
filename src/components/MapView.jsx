@@ -173,30 +173,17 @@ function EventMarker({ event, onLongPress }) {
  * Mobile: fits bounds to show all events on first load.
  * Also renders the user location dot and "My location" button.
  */
-function MapControls({ userLocation, showBtn, setShowBtn, events, mode }) {
+function MapControls({ userLocation, showBtn, setShowBtn }) {
   const map = useMap()
   const initialFit = useRef(false)
 
   const validLoc = isValidCoord(userLocation?.lat) && isValidCoord(userLocation?.lng)
 
   useEffect(() => {
-    if (mode === 'desktop') {
-      if (!validLoc || initialFit.current) return
-      initialFit.current = true
-      map.setView([userLocation.lat, userLocation.lng], 12, { animate: true })
-    } else {
-      if (initialFit.current || events.length === 0) return
-      const pts = events
-        .filter(e => isValidCoord(e.venues?.latitude) && isValidCoord(e.venues?.longitude))
-        .map(e => [e.venues.latitude, e.venues.longitude])
-      if (pts.length === 0) return
-      if (validLoc) pts.push([userLocation.lat, userLocation.lng])
-      initialFit.current = true
-      try {
-        map.fitBounds(L.latLngBounds(pts), { padding: [50, 50], maxZoom: 13, animate: true })
-      } catch (_) {}
-    }
-  }, [events, userLocation]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (!validLoc || initialFit.current) return
+    initialFit.current = true
+    map.setView([userLocation.lat, userLocation.lng], 12, { animate: true })
+  }, [userLocation]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useMapEvents({
     moveend() {
@@ -302,8 +289,6 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
           userLocation={userLocation}
           showBtn={showLocationBtn}
           setShowBtn={setShowLocationBtn}
-          events={events}
-          mode={mode}
         />
 
         <MarkerClusterGroup
