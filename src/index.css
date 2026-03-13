@@ -18,15 +18,13 @@
   }
 }
 
-/* Hide scrollbars on desktop while keeping scroll functionality */
-@media (min-width: 768px) {
-  .no-scrollbar {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
+/* Hide scrollbars while keeping scroll functionality */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 /* Dialog fade-in */
