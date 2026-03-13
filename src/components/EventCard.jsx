@@ -35,14 +35,18 @@ function SourceBadge({ platform }) {
   )
 }
 
-export default function EventCard({ event, onClick }) {
+export default function EventCard({ event, onClick, isSelected }) {
   const venue = event.venues
   const price = formatPrice(event.price_min, event.price_max, event.currency)
   const date = formatDate(event.start_datetime)
 
   return (
     <div
-      className="group flex flex-col bg-white rounded-xl border border-gray-200 overflow-hidden cursor-pointer hover:shadow-md hover:border-gray-300 transition-all duration-200"
+      className={`group flex flex-col bg-white rounded-xl border overflow-hidden cursor-pointer hover:shadow-md transition-all duration-200 ${
+        isSelected
+          ? 'border-indigo-400 ring-2 ring-indigo-100 shadow-md'
+          : 'border-gray-200 hover:border-gray-300'
+      }`}
       onClick={onClick}
     >
       {/* Banner */}

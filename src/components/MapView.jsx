@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react'
+import { useRef, useState, useCallback, forwardRef, useImperativeHandle } from 'react'
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
@@ -228,7 +228,18 @@ function MapControls({ userLocation, showBtn, setShowBtn }) {
   )
 }
 
-export default function MapView({ events, userLocation }) {
+/** Inner component that exposes the map instance via imperative handle */
+function FlyToHelper({ mapRef }) {
+  const map = useMap()
+  useImperativeHandle(mapRef, () => ({
+    flyToEvent(lat, lng) {
+      map.flyTo([lat, lng], 15, { duration: 1.2 })
+    },
+  }), [map])
+  return null
+}
+
+const MapView = forwardRef(function MapView({ events, userLocation }, ref) {
   const [popupEvent, setPopupEvent] = useState(null)
   const [showLocationBtn, setShowLocationBtn] = useState(false)
 
@@ -255,6 +266,8 @@ export default function MapView({ events, userLocation }) {
         style={{ width: '100%', height: '100%' }}
         zoomControl={false}
       >
+        <FlyToHelper mapRef={ref} />
+
         {/* Monochrome CartoDB Positron — parks light green, water light blue */}
         <TileLayer
           attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
@@ -292,4 +305,6 @@ export default function MapView({ events, userLocation }) {
       )}
     </div>
   )
-}
+})
+
+export default MapView
