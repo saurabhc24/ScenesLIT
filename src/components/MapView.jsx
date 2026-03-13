@@ -124,7 +124,7 @@ function EventMarker({ event, onLongPress }) {
   const didLongPress = useRef(false)
   const venue = event.venues
 
-  if (!venue?.latitude || !venue?.longitude) return null
+  if (!isFinite(venue?.latitude) || !isFinite(venue?.longitude)) return null
 
   const icon = createEventIcon(event.image_url)
 
@@ -173,7 +173,8 @@ function MapControls({ userLocation, showBtn, setShowBtn }) {
   const map = useMap()
   const initialFlown = useRef(false)
 
-  if (userLocation && !initialFlown.current) {
+  const validLoc = isFinite(userLocation?.lat) && isFinite(userLocation?.lng)
+  if (validLoc && !initialFlown.current) {
     initialFlown.current = true
     map.flyTo([userLocation.lat, userLocation.lng], 13, { duration: 1.5 })
   }
@@ -245,7 +246,8 @@ const MapView = forwardRef(function MapView({ events, userLocation }, ref) {
 
   const handleLongPress = useCallback((event) => setPopupEvent(event), [])
 
-  const defaultCenter = userLocation
+  const hasValidLocation = isFinite(userLocation?.lat) && isFinite(userLocation?.lng)
+  const defaultCenter = hasValidLocation
     ? [userLocation.lat, userLocation.lng]
     : [18.9388, 72.8354]
 
@@ -289,7 +291,7 @@ const MapView = forwardRef(function MapView({ events, userLocation }, ref) {
           showCoverageOnHover={false}
         >
           {events
-            .filter((e) => e.venues?.latitude != null && e.venues?.longitude != null)
+            .filter((e) => isFinite(e.venues?.latitude) && isFinite(e.venues?.longitude))
             .map((event) => (
               <EventMarker
                 key={event.id}
