@@ -48,15 +48,19 @@ export default function EventPopup({ event, onClose }) {
       onClick={onClose}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="popup-event-title"
         className="relative bg-white md:dark:bg-gray-800 rounded-2xl overflow-hidden shadow-2xl w-full max-w-sm"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 z-10 w-7 h-7 flex items-center justify-center rounded-full bg-black/40 text-white hover:bg-black/60 transition"
+          aria-label="Close"
+          className="absolute top-3 right-3 z-10 w-7 h-7 flex items-center justify-center rounded-full bg-black/40 text-white hover:bg-black/60 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -78,18 +82,18 @@ export default function EventPopup({ event, onClose }) {
 
         {/* Content */}
         <div className="p-4 space-y-3 max-h-[60vh] overflow-y-auto no-scrollbar">
-          <h2 className="text-base font-bold text-gray-900 md:dark:text-white leading-snug">{event.title}</h2>
+          <h2 id="popup-event-title" className="text-base font-bold text-gray-900 md:dark:text-white leading-snug">{event.title}</h2>
 
           {/* Description */}
           {event.description && (
-            <p className="text-sm text-gray-500 md:dark:text-gray-300 leading-relaxed line-clamp-4">
+            <p className="text-sm text-gray-600 md:dark:text-gray-300 leading-relaxed line-clamp-4">
               {event.description}
             </p>
           )}
 
           <div className="space-y-1.5">
             {venue?.name && (
-              <div className="flex items-center gap-2 text-sm text-gray-500 md:dark:text-gray-300">
+              <div className="flex items-center gap-2 text-sm text-gray-600 md:dark:text-gray-300">
                 <svg className="w-4 h-4 flex-shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                     d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -100,7 +104,7 @@ export default function EventPopup({ event, onClose }) {
             )}
 
             {date && (
-              <div className="flex items-center gap-2 text-sm text-gray-500 md:dark:text-gray-300">
+              <div className="flex items-center gap-2 text-sm text-gray-600 md:dark:text-gray-300">
                 <svg className="w-4 h-4 flex-shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                     d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -113,7 +117,7 @@ export default function EventPopup({ event, onClose }) {
           <div className="flex items-center justify-between pt-1">
             <span className="text-lg font-bold text-primary">{price}</span>
             {event.source_platform && (
-              <span className="text-xs text-gray-400 md:dark:text-gray-400 capitalize">{event.source_platform}</span>
+              <span className="text-xs text-gray-600 md:dark:text-gray-400 capitalize">{event.source_platform}</span>
             )}
           </div>
 

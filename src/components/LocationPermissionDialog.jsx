@@ -14,7 +14,12 @@ export default function LocationPermissionDialog({ open, onAllow, onSelectCity }
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white md:dark:bg-gray-800 rounded-2xl shadow-xl w-[90%] max-w-sm p-6 flex flex-col gap-5 animate-fade-in">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="location-dialog-title"
+        className="bg-white md:dark:bg-gray-800 rounded-2xl shadow-xl w-[90%] max-w-sm p-6 flex flex-col gap-5 animate-fade-in"
+      >
         {/* Icon */}
         <div className="mx-auto w-14 h-14 bg-primary/10 md:dark:bg-primary/20 rounded-full flex items-center justify-center">
           <svg className="w-7 h-7 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -26,7 +31,7 @@ export default function LocationPermissionDialog({ open, onAllow, onSelectCity }
         </div>
 
         <div className="text-center">
-          <h2 className="text-lg font-bold text-gray-900 md:dark:text-white">Discover events near you</h2>
+          <h2 id="location-dialog-title" className="text-lg font-bold text-gray-900 md:dark:text-white">Discover events near you</h2>
           <p className="text-sm text-gray-500 md:dark:text-gray-400 mt-1">Allow location access to see what's happening around you</p>
         </div>
 
@@ -39,7 +44,7 @@ export default function LocationPermissionDialog({ open, onAllow, onSelectCity }
 
         <div className="flex items-center gap-3">
           <div className="flex-1 h-px bg-gray-200 md:dark:bg-gray-700" />
-          <span className="text-xs text-gray-400 md:dark:text-gray-500">or pick a city</span>
+          <span className="text-xs text-gray-600 md:dark:text-gray-500">or pick a city</span>
           <div className="flex-1 h-px bg-gray-200 md:dark:bg-gray-700" />
         </div>
 
