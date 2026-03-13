@@ -14,7 +14,7 @@ export function useEvents({ searchTerm = '', categoryId = null } = {}) {
       let query = supabase
         .from('events')
         .select('*, venues(name, address, latitude, longitude), categories(name, icon)')
-        .order('start_datetime', { ascending: true })
+        .order('start_time', { ascending: true })
 
       if (searchTerm.trim()) {
         const term = searchTerm.trim()
