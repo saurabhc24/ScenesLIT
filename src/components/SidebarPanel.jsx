@@ -1,6 +1,6 @@
 import EventCard from './EventCard'
 
-export default function SidebarPanel({ events, eventsLoading, onEventClick, selectedEventId }) {
+export default function SidebarPanel({ events, eventsLoading, onEventClick, selectedEventId, onEventHover }) {
   return (
     <div className="flex flex-col h-full border border-gray-200 dark:border-gray-600 rounded-[20px] overflow-hidden bg-white dark:bg-gray-800">
       <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-4 space-y-3">
@@ -28,6 +28,8 @@ export default function SidebarPanel({ events, eventsLoading, onEventClick, sele
               event={event}
               isSelected={event.id === selectedEventId}
               onClick={() => onEventClick(event)}
+              onMouseEnter={() => onEventHover?.(event.id)}
+              onMouseLeave={() => onEventHover?.(null)}
             />
           ))
         )}

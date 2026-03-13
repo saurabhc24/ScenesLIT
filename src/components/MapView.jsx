@@ -30,7 +30,7 @@ function distanceDeg(a, b) {
 function createEventIcon(imageUrl) {
   const img = imageUrl
     ? `<img src="${imageUrl}" style="width:46px;height:46px;object-fit:cover;border-radius:6px;margin:2px;display:block;" />`
-    : `<div style="width:46px;height:46px;background:#e0e7ff;border-radius:6px;margin:2px;display:flex;align-items:center;justify-content:center;font-size:20px;">🎭</div>`
+    : `<div style="width:46px;height:46px;background:#fde8ea;border-radius:6px;margin:2px;display:flex;align-items:center;justify-content:center;font-size:20px;">🎭</div>`
 
   return L.divIcon({
     className: '',
@@ -40,6 +40,28 @@ function createEventIcon(imageUrl) {
       <div style="
         width:50px;height:50px;background:#fff;border-radius:8px;
         box-shadow:0 2px 8px rgba(0,0,0,0.22);
+        display:flex;align-items:center;justify-content:center;
+        box-sizing:border-box;overflow:hidden;
+      ">${img}</div>
+    `,
+  })
+}
+
+/** 64×64 highlighted marker shown when the corresponding sidebar card is hovered */
+function createEventIconHovered(imageUrl) {
+  const img = imageUrl
+    ? `<img src="${imageUrl}" style="width:58px;height:58px;object-fit:cover;border-radius:8px;margin:3px;display:block;" />`
+    : `<div style="width:58px;height:58px;background:#fde8ea;border-radius:8px;margin:3px;display:flex;align-items:center;justify-content:center;font-size:24px;">🎭</div>`
+
+  return L.divIcon({
+    className: '',
+    iconSize: [64, 64],
+    iconAnchor: [32, 32],
+    html: `
+      <div style="
+        width:64px;height:64px;background:#fff;border-radius:10px;
+        box-shadow:0 4px 14px rgba(0,0,0,0.3);
+        border:2px solid #D72638;
         display:flex;align-items:center;justify-content:center;
         box-sizing:border-box;overflow:hidden;
       ">${img}</div>
@@ -135,16 +157,17 @@ const USER_LOCATION_ICON = L.divIcon({
 })
 
 /** Individual event marker with click and long-press */
-function EventMarker({ event, onLongPress }) {
+function EventMarker({ event, onLongPress, isHovered }) {
   const longPressTimer = useRef(null)
   const didLongPress = useRef(false)
   const venue = event.venues
 
   if (!isValidCoord(venue?.latitude) || !isValidCoord(venue?.longitude)) return null
 
-  const icon = createEventIcon(event.image_url)
+  const icon = isHovered ? createEventIconHovered(event.image_url) : createEventIcon(event.image_url)
 
-  function startPress() {
+  function startPress(e) {
+    if (e.originalEvent) e.originalEvent.preventDefault()
     didLongPress.current = false
     longPressTimer.current = setTimeout(() => {
       didLongPress.current = true
@@ -167,6 +190,7 @@ function EventMarker({ event, onLongPress }) {
     <Marker
       position={[venue.latitude, venue.longitude]}
       icon={icon}
+      zIndexOffset={isHovered ? 500 : 0}
       eventId={event.id}
       eventImageUrl={event.image_url}
       eventHandlers={{
@@ -175,6 +199,7 @@ function EventMarker({ event, onLongPress }) {
         touchstart: startPress,
         touchend: endPress,
         click: handleClick,
+        contextmenu: (e) => { if (e.originalEvent) e.originalEvent.preventDefault() },
       }}
     />
   )
@@ -253,7 +278,7 @@ function FlyToHelper({ mapRef }) {
   return null
 }
 
-const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desktop' }, ref) {
+const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desktop', hoveredEventId = null }, ref) {
   const [popupEvent, setPopupEvent] = useState(null)
   const [clusterEvents, setClusterEvents] = useState([])
   const [showLocationBtn, setShowLocationBtn] = useState(false)
@@ -273,7 +298,11 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
     : [18.9388, 72.8354]
 
   return (
-    <div className="relative w-full h-full">
+    <div
+      className="relative w-full h-full select-none"
+      onContextMenu={(e) => e.preventDefault()}
+      style={{ WebkitTouchCallout: 'none' }}
+    >
       <style>{`
         @keyframes sceneslit-pulse {
           0%   { transform: scale(1);   opacity: 0.7; }
@@ -318,6 +347,7 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
                 key={event.id}
                 event={event}
                 onLongPress={handleLongPress}
+                isHovered={event.id === hoveredEventId}
               />
             ))}
         </MarkerClusterGroup>

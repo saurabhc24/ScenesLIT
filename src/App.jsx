@@ -13,6 +13,7 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [selectedEventId, setSelectedEventId] = useState(null)
+  const [hoveredEventId, setHoveredEventId] = useState(null)
   const mapRef = useRef(null)
 
   // Dark mode — persisted to localStorage, toggled via html.dark class
@@ -45,46 +46,54 @@ export default function App() {
     }
   }, [])
 
-  return (
-    <div className="flex flex-col h-screen overflow-hidden bg-gray-50 dark:bg-gray-900 transition-colors">
-
-      {/* Desktop header */}
-      <div className="hidden md:block">
-        <Navbar searchTerm={searchTerm} onSearchChange={setSearchTerm} darkMode={darkMode} onToggleDark={toggleDark} />
-      </div>
-
-      {/* Desktop category bar */}
-      <div className="hidden md:flex md:flex-shrink-0 items-center gap-2 px-6 py-2.5 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 overflow-x-auto no-scrollbar z-30">
-        <button
-          onClick={() => setSelectedCategory(null)}
-          className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-            selectedCategory === null
-              ? 'bg-primary text-white shadow-sm'
+  const categoryPills = (mobile = false) => (
+    <>
+      <button
+        onClick={() => setSelectedCategory(null)}
+        className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+          selectedCategory === null
+            ? 'bg-primary text-white shadow-sm'
+            : mobile
+              ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-          }`}
-        >
-          All
-        </button>
-        {categoriesLoading ? (
-          [1, 2, 3].map(i => (
-            <div key={i} className="flex-shrink-0 h-7 w-20 rounded-full bg-gray-100 dark:bg-gray-700 animate-pulse" />
-          ))
-        ) : (
-          categories.map(cat => (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                selectedCategory === cat.id
-                  ? 'bg-primary text-white shadow-sm'
+        }`}
+      >
+        All
+      </button>
+      {categoriesLoading ? (
+        [1, 2, 3].map(i => (
+          <div key={i} className={`flex-shrink-0 h-7 w-20 rounded-full animate-pulse ${mobile ? 'bg-gray-100' : 'bg-gray-100 dark:bg-gray-700'}`} />
+        ))
+      ) : (
+        categories.map(cat => (
+          <button
+            key={cat.id}
+            onClick={() => setSelectedCategory(cat.id)}
+            className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+              selectedCategory === cat.id
+                ? 'bg-primary text-white shadow-sm'
+                : mobile
+                  ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-              }`}
-            >
-              {cat.icon && <span className="text-sm">{cat.icon}</span>}
-              {cat.name}
-            </button>
-          ))
-        )}
+            }`}
+          >
+            {cat.icon && <span className="text-sm">{cat.icon}</span>}
+            {cat.name}
+          </button>
+        ))
+      )}
+    </>
+  )
+
+  return (
+    <div className="flex flex-col h-[100dvh] overflow-hidden bg-gray-50 dark:bg-gray-900 transition-colors">
+
+      {/* Desktop: unified navbar + category bar */}
+      <div className="hidden md:block flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
+        <Navbar searchTerm={searchTerm} onSearchChange={setSearchTerm} darkMode={darkMode} onToggleDark={toggleDark} />
+        <div className="flex items-center gap-2 px-6 py-2.5 overflow-x-auto no-scrollbar">
+          {categoryPills(false)}
+        </div>
       </div>
 
       {/* Desktop layout */}
@@ -95,15 +104,19 @@ export default function App() {
             eventsLoading={eventsLoading}
             onEventClick={handleEventClick}
             selectedEventId={selectedEventId}
+            onEventHover={setHoveredEventId}
           />
         </div>
         <div className="flex-1 border border-gray-200 dark:border-gray-700 rounded-[20px] overflow-hidden">
-          <MapView ref={mapRef} events={events} userLocation={userLocation} mode="desktop" />
+          <MapView ref={mapRef} events={events} userLocation={userLocation} mode="desktop" hoveredEventId={hoveredEventId} />
         </div>
       </div>
 
-      {/* Mobile layout */}
-      <div className="flex md:hidden flex-col flex-1 overflow-hidden bg-white p-4 gap-2">
+      {/* Mobile layout — 16px padding, 8px gaps, safe-area bottom */}
+      <div
+        className="flex md:hidden flex-col flex-1 overflow-hidden bg-white pt-4 px-4 gap-2"
+        style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 1rem))' }}
+      >
         {/* Mobile header: Logo pill + Search */}
         <header className="flex items-center gap-3 flex-shrink-0">
           <div className="flex items-center gap-0.5 bg-gray-100 px-3 py-2 rounded-full select-none flex-shrink-0">
@@ -126,40 +139,11 @@ export default function App() {
 
         {/* Mobile category bar */}
         <div className="flex-shrink-0 flex items-center gap-2 overflow-x-auto no-scrollbar">
-          <button
-            onClick={() => setSelectedCategory(null)}
-            className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-              selectedCategory === null
-                ? 'bg-primary text-white shadow-sm'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            All
-          </button>
-          {categoriesLoading ? (
-            [1, 2, 3].map(i => (
-              <div key={i} className="flex-shrink-0 h-7 w-20 rounded-full bg-gray-100 animate-pulse" />
-            ))
-          ) : (
-            categories.map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  selectedCategory === cat.id
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {cat.icon && <span className="text-sm">{cat.icon}</span>}
-                {cat.name}
-              </button>
-            ))
-          )}
+          {categoryPills(true)}
         </div>
 
-        {/* Map — fills remaining space, rounded corners */}
-        <div className="flex-1 min-h-0 rounded-2xl overflow-hidden">
+        {/* Map — fills remaining space, rounded corners, subtle border */}
+        <div className="flex-1 min-h-0 rounded-2xl overflow-hidden" style={{ border: '0.5px solid #C8C8C8' }}>
           <MapView ref={mapRef} events={events} userLocation={userLocation} mode="mobile" />
         </div>
       </div>

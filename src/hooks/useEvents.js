@@ -17,7 +17,8 @@ export function useEvents({ searchTerm = '', categoryId = null } = {}) {
         .order('start_datetime', { ascending: true })
 
       if (searchTerm.trim()) {
-        query = query.ilike('title', `%${searchTerm.trim()}%`)
+        const term = searchTerm.trim()
+        query = query.or(`title.ilike.%${term}%,source_platform.ilike.%${term}%`)
       }
 
       if (categoryId) {

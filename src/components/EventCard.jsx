@@ -35,7 +35,7 @@ function SourceBadge({ platform }) {
   )
 }
 
-export default function EventCard({ event, onClick, isSelected }) {
+export default function EventCard({ event, onClick, isSelected, onMouseEnter, onMouseLeave }) {
   const venue = event.venues
   const price = formatPrice(event.price_min, event.price_max, event.currency)
   const date = formatDate(event.start_datetime)
@@ -48,6 +48,8 @@ export default function EventCard({ event, onClick, isSelected }) {
           : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
       }`}
       onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       {/* Banner */}
       <div className="relative w-full aspect-video bg-gray-100 dark:bg-gray-700 overflow-hidden">

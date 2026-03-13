@@ -1,6 +1,6 @@
 export default function Navbar({ searchTerm, onSearchChange, darkMode, onToggleDark }) {
   return (
-    <header className="flex-shrink-0 flex items-center justify-between px-6 py-4 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
+    <header className="flex items-center justify-between px-6 py-4">
       {/* Logo */}
       <div className="flex items-center gap-1.5 select-none">
         <span className="text-xl font-black tracking-tight text-gray-900 dark:text-white">Scenes</span>
