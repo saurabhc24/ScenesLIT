@@ -9,16 +9,17 @@
 
 import { chromium } from 'playwright'
 
-const CITY_SLUGS = {
-  Mumbai: 'mumbai',
-  Delhi: 'delhi-ncr',
-  Bengaluru: 'bengaluru',
-  Hyderabad: 'hyderabad',
-  Chennai: 'chennai',
-  Pune: 'pune',
-  Kolkata: 'kolkata',
-  Ahmedabad: 'ahmedabad',
-  Goa: 'goa',
+// Search term to use in district.in's city picker
+const CITY_SEARCH = {
+  Mumbai: 'Mumbai, Maharashtra',
+  Delhi: 'Delhi/NCR, Delhi',
+  Bengaluru: 'Bengaluru, Karnataka',
+  Hyderabad: 'Hyderabad, Telangana',
+  Chennai: 'Chennai, Tamil Nadu',
+  Pune: 'Pune, Maharashtra',
+  Kolkata: 'Kolkata, West Bengal',
+  Ahmedabad: 'Ahmedabad, Gujarat',
+  Goa: 'Goa, India',
 }
 
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
@@ -38,19 +39,43 @@ async function extractJsonLd(page, url) {
   }
 }
 
+// Select a city using the district.in city picker modal
+async function selectCity(page, citySearchTerm) {
+  // Click the city button (always first button on the page)
+  await page.click('button:first-of-type')
+  await page.waitForTimeout(1500)
+
+  // Type the city name in the search box
+  await page.fill('input[placeholder*="Search city"]', citySearchTerm.split(',')[0])
+  await page.waitForTimeout(1500)
+
+  // Click the exact matching result (e.g. "Mumbai, Maharashtra")
+  try {
+    await page.click(`text="${citySearchTerm}"`, { timeout: 3000 })
+  } catch {
+    // Fallback: click first result containing the city name
+    await page.click(`text="${citySearchTerm.split(',')[0]}"`, { timeout: 3000 })
+  }
+  await page.waitForTimeout(2500)
+}
+
 // Get all event URLs from listing page + collect JSON-LD in one browser session
-async function scrapeWithBrowser(citySlug) {
+async function scrapeWithBrowser(city) {
+  const citySearchTerm = CITY_SEARCH[city]
   const browser = await chromium.launch({ headless: true })
   try {
     const context = await browser.newContext({ userAgent: UA })
 
     // Step 1: get event URLs from listing page
     const listPage = await context.newPage()
-    await listPage.goto(`https://district.in/events?city=${citySlug}`, {
+    await listPage.goto('https://district.in/events', {
       waitUntil: 'domcontentloaded',
       timeout: 30000,
     })
     await listPage.waitForTimeout(4000)
+
+    // Select the target city via the city picker
+    await selectCity(listPage, citySearchTerm)
 
     // Scroll to trigger lazy loading
     for (let i = 0; i < 3; i++) {
@@ -137,15 +162,14 @@ function mapJsonLd(ld, city) {
 }
 
 export async function scrapeDistrict(city) {
-  const citySlug = CITY_SLUGS[city]
-  if (!citySlug) {
-    console.warn(`[District] No city slug for "${city}" — skipping`)
+  if (!CITY_SEARCH[city]) {
+    console.warn(`[District] No city config for "${city}" — skipping`)
     return []
   }
 
   let ldItems = []
   try {
-    ldItems = await scrapeWithBrowser(citySlug)
+    ldItems = await scrapeWithBrowser(city)
     console.log(`[District] Fetched ${ldItems.length} event pages for ${city}`)
   } catch (err) {
     console.error(`[District] Browser failed for ${city}: ${err.message}`)
