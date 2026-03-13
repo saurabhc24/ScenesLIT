@@ -15,13 +15,18 @@ export default function App() {
   const [selectedEventId, setSelectedEventId] = useState(null)
   const mapRef = useRef(null)
 
-  // Dark mode — persisted to localStorage
+  // Dark mode — persisted to localStorage, toggled via html.dark class
   const [darkMode, setDarkMode] = useState(() => {
-    try { return localStorage.getItem('darkMode') === 'true' } catch { return false }
+    try {
+      const saved = localStorage.getItem('darkMode') === 'true'
+      if (saved) document.documentElement.classList.add('dark')
+      return saved
+    } catch { return false }
   })
   function toggleDark() {
     setDarkMode(d => {
       const next = !d
+      document.documentElement.classList.toggle('dark', next)
       try { localStorage.setItem('darkMode', String(next)) } catch {}
       return next
     })
@@ -41,7 +46,7 @@ export default function App() {
   }, [])
 
   return (
-    <div className={`flex flex-col h-screen overflow-hidden bg-gray-50 dark:bg-gray-900 transition-colors${darkMode ? ' dark' : ''}`}>
+    <div className="flex flex-col h-screen overflow-hidden bg-gray-50 dark:bg-gray-900 transition-colors">
 
       {/* Mobile header */}
       <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 shadow-sm flex-shrink-0 z-40">
@@ -100,13 +105,13 @@ export default function App() {
           />
         </div>
         <div className="flex-1 border border-gray-200 dark:border-gray-700 rounded-[20px] overflow-hidden">
-          <MapView ref={mapRef} events={events} userLocation={userLocation} darkMode={darkMode} />
+          <MapView ref={mapRef} events={events} userLocation={userLocation} mode="desktop" />
         </div>
       </div>
 
       {/* Mobile layout */}
       <div className="flex md:hidden flex-1 overflow-hidden">
-        <MapView ref={mapRef} events={events} userLocation={userLocation} darkMode={darkMode} />
+        <MapView ref={mapRef} events={events} userLocation={userLocation} mode="mobile" />
       </div>
 
       {/* Event detail popup (sidebar click or long press) */}

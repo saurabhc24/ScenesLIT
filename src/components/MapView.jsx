@@ -169,28 +169,34 @@ function EventMarker({ event, onLongPress }) {
 }
 
 /**
- * Fits map to all events on first load (shows events on both desktop and mobile).
+ * Desktop: centers on user location at zoom 12 (~10km radius) once location is available.
+ * Mobile: fits bounds to show all events on first load.
  * Also renders the user location dot and "My location" button.
  */
-function MapControls({ userLocation, showBtn, setShowBtn, events }) {
+function MapControls({ userLocation, showBtn, setShowBtn, events, mode }) {
   const map = useMap()
   const initialFit = useRef(false)
 
   const validLoc = isValidCoord(userLocation?.lat) && isValidCoord(userLocation?.lng)
 
-  // Fit bounds to show all events (+ user location) once events load
   useEffect(() => {
-    if (initialFit.current || events.length === 0) return
-    const pts = events
-      .filter(e => isValidCoord(e.venues?.latitude) && isValidCoord(e.venues?.longitude))
-      .map(e => [e.venues.latitude, e.venues.longitude])
-    if (pts.length === 0) return
-    if (validLoc) pts.push([userLocation.lat, userLocation.lng])
-    initialFit.current = true
-    try {
-      map.fitBounds(L.latLngBounds(pts), { padding: [50, 50], maxZoom: 13, animate: true })
-    } catch (_) {}
-  }, [events]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (mode === 'desktop') {
+      if (!validLoc || initialFit.current) return
+      initialFit.current = true
+      map.setView([userLocation.lat, userLocation.lng], 12, { animate: true })
+    } else {
+      if (initialFit.current || events.length === 0) return
+      const pts = events
+        .filter(e => isValidCoord(e.venues?.latitude) && isValidCoord(e.venues?.longitude))
+        .map(e => [e.venues.latitude, e.venues.longitude])
+      if (pts.length === 0) return
+      if (validLoc) pts.push([userLocation.lat, userLocation.lng])
+      initialFit.current = true
+      try {
+        map.fitBounds(L.latLngBounds(pts), { padding: [50, 50], maxZoom: 13, animate: true })
+      } catch (_) {}
+    }
+  }, [events, userLocation]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useMapEvents({
     moveend() {
@@ -248,7 +254,7 @@ function FlyToHelper({ mapRef }) {
   return null
 }
 
-const MapView = forwardRef(function MapView({ events, userLocation, darkMode }, ref) {
+const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desktop' }, ref) {
   const [popupEvent, setPopupEvent] = useState(null)
   const [clusterEvents, setClusterEvents] = useState([])
   const [showLocationBtn, setShowLocationBtn] = useState(false)
@@ -267,10 +273,6 @@ const MapView = forwardRef(function MapView({ events, userLocation, darkMode }, 
     ? [userLocation.lat, userLocation.lng]
     : [18.9388, 72.8354]
 
-  const tileUrl = darkMode
-    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-    : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
-
   return (
     <div className="relative w-full h-full">
       <style>{`
@@ -283,16 +285,15 @@ const MapView = forwardRef(function MapView({ events, userLocation, darkMode }, 
 
       <MapContainer
         center={defaultCenter}
-        zoom={13}
+        zoom={mode === 'desktop' ? 12 : 13}
         style={{ width: '100%', height: '100%' }}
         zoomControl={false}
       >
         <FlyToHelper mapRef={ref} />
 
         <TileLayer
-          key={darkMode ? 'dark' : 'light'}
           attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url={tileUrl}
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           subdomains="abcd"
           maxZoom={19}
         />
@@ -302,6 +303,7 @@ const MapView = forwardRef(function MapView({ events, userLocation, darkMode }, 
           showBtn={showLocationBtn}
           setShowBtn={setShowLocationBtn}
           events={events}
+          mode={mode}
         />
 
         <MarkerClusterGroup
