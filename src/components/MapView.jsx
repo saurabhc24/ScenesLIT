@@ -15,6 +15,11 @@ L.Icon.Default.mergeOptions({
 const LONG_PRESS_MS = 500
 const LOCATION_THRESHOLD = 0.02 // ~2 km in degrees
 
+// isFinite(null) === true in JS, so we need a stricter check
+function isValidCoord(v) {
+  return typeof v === 'number' && isFinite(v)
+}
+
 function distanceDeg(a, b) {
   const dlat = a[0] - b[0]
   const dlng = a[1] - b[1]
@@ -124,7 +129,7 @@ function EventMarker({ event, onLongPress }) {
   const didLongPress = useRef(false)
   const venue = event.venues
 
-  if (!isFinite(venue?.latitude) || !isFinite(venue?.longitude)) return null
+  if (!isValidCoord(venue?.latitude) || !isValidCoord(venue?.longitude)) return null
 
   const icon = createEventIcon(event.image_url)
 
@@ -173,7 +178,7 @@ function MapControls({ userLocation, showBtn, setShowBtn }) {
   const map = useMap()
   const initialFlown = useRef(false)
 
-  const validLoc = isFinite(userLocation?.lat) && isFinite(userLocation?.lng)
+  const validLoc = isValidCoord(userLocation?.lat) && isValidCoord(userLocation?.lng)
   if (validLoc && !initialFlown.current) {
     initialFlown.current = true
     map.flyTo([userLocation.lat, userLocation.lng], 13, { duration: 1.5 })
@@ -234,7 +239,7 @@ function FlyToHelper({ mapRef }) {
   const map = useMap()
   useImperativeHandle(mapRef, () => ({
     flyToEvent(lat, lng) {
-      if (isFinite(lat) && isFinite(lng)) {
+      if (isValidCoord(lat) && isValidCoord(lng)) {
         map.flyTo([lat, lng], 15, { duration: 1.2 })
       }
     },
@@ -248,7 +253,7 @@ const MapView = forwardRef(function MapView({ events, userLocation }, ref) {
 
   const handleLongPress = useCallback((event) => setPopupEvent(event), [])
 
-  const hasValidLocation = isFinite(userLocation?.lat) && isFinite(userLocation?.lng)
+  const hasValidLocation = isValidCoord(userLocation?.lat) && isValidCoord(userLocation?.lng)
   const defaultCenter = hasValidLocation
     ? [userLocation.lat, userLocation.lng]
     : [18.9388, 72.8354]
@@ -293,7 +298,7 @@ const MapView = forwardRef(function MapView({ events, userLocation }, ref) {
           showCoverageOnHover={false}
         >
           {events
-            .filter((e) => isFinite(e.venues?.latitude) && isFinite(e.venues?.longitude))
+            .filter((e) => isValidCoord(e.venues?.latitude) && isValidCoord(e.venues?.longitude))
             .map((event) => (
               <EventMarker
                 key={event.id}
