@@ -181,7 +181,7 @@ function MapControls({ userLocation, showBtn, setShowBtn }) {
 
   useMapEvents({
     moveend() {
-      if (!userLocation) return
+      if (!validLoc) return
       const c = map.getCenter()
       const dist = distanceDeg(
         [c.lat, c.lng],
@@ -194,7 +194,7 @@ function MapControls({ userLocation, showBtn, setShowBtn }) {
   return (
     <>
       {/* User location dot marker */}
-      {userLocation && (
+      {validLoc && (
         <Marker
           position={[userLocation.lat, userLocation.lng]}
           icon={USER_LOCATION_ICON}
@@ -204,7 +204,7 @@ function MapControls({ userLocation, showBtn, setShowBtn }) {
       )}
 
       {/* "My location" button — shown when map has panned away */}
-      {showBtn && userLocation && (
+      {showBtn && validLoc && (
         <div
           className="leaflet-bottom leaflet-right"
           style={{ zIndex: 1000, pointerEvents: 'auto' }}
@@ -234,7 +234,9 @@ function FlyToHelper({ mapRef }) {
   const map = useMap()
   useImperativeHandle(mapRef, () => ({
     flyToEvent(lat, lng) {
-      map.flyTo([lat, lng], 15, { duration: 1.2 })
+      if (isFinite(lat) && isFinite(lng)) {
+        map.flyTo([lat, lng], 15, { duration: 1.2 })
+      }
     },
   }), [map])
   return null
