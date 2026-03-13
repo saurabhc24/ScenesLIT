@@ -156,7 +156,7 @@ const USER_LOCATION_ICON = L.divIcon({
   `,
 })
 
-/** Individual event marker with click and long-press */
+/** Individual event marker */
 function EventMarker({ event, onLongPress, isHovered, mode }) {
   const longPressTimer = useRef(null)
   const didLongPress = useRef(false)
@@ -166,15 +166,9 @@ function EventMarker({ event, onLongPress, isHovered, mode }) {
 
   const icon = isHovered ? createEventIconHovered(event.image_url) : createEventIcon(event.image_url)
 
+  // Desktop only: long-press detection (mousedown/mouseup)
   function startPress(e) {
-    // Clear any stale timer — both touchstart and mousedown fire on mobile,
-    // so startPress is called twice; the second call must not leave a ghost timer
-    clearTimeout(longPressTimer.current)
-    // Don't preventDefault on touchstart: it suppresses the browser's synthetic
-    // click event, which is what we rely on in handleClick for mobile taps
-    if (e.originalEvent && e.originalEvent.type !== 'touchstart') {
-      e.originalEvent.preventDefault()
-    }
+    if (e.originalEvent) e.originalEvent.preventDefault()
     didLongPress.current = false
     longPressTimer.current = setTimeout(() => {
       didLongPress.current = true
@@ -187,16 +181,21 @@ function EventMarker({ event, onLongPress, isHovered, mode }) {
     longPressTimer.current = null
   }
 
-  function handleClick() {
-    if (didLongPress.current) return
-    if (mode === 'mobile') {
-      // On mobile: tap shows the info card (EventPopup)
-      onLongPress(event)
-    } else if (event.source_url) {
-      window.open(event.source_url, '_blank', 'noopener,noreferrer')
-    }
+  // Mobile: plain tap → EventPopup
+  if (mode === 'mobile') {
+    return (
+      <Marker
+        position={[venue.latitude, venue.longitude]}
+        icon={icon}
+        zIndexOffset={isHovered ? 500 : 0}
+        eventId={event.id}
+        eventImageUrl={event.image_url}
+        eventHandlers={{ click: () => onLongPress(event) }}
+      />
+    )
   }
 
+  // Desktop: click → open URL, long-press → EventPopup
   return (
     <Marker
       position={[venue.latitude, venue.longitude]}
@@ -207,9 +206,7 @@ function EventMarker({ event, onLongPress, isHovered, mode }) {
       eventHandlers={{
         mousedown: startPress,
         mouseup: endPress,
-        touchstart: startPress,
-        touchend: endPress,
-        click: handleClick,
+        click: () => { if (!didLongPress.current && event.source_url) window.open(event.source_url, '_blank', 'noopener,noreferrer') },
         contextmenu: (e) => { if (e.originalEvent) e.originalEvent.preventDefault() },
       }}
     />
