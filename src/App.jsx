@@ -49,9 +49,9 @@ export default function App() {
     <div className="flex flex-col h-screen overflow-hidden bg-gray-50 dark:bg-gray-900 transition-colors">
 
       {/* Mobile header */}
-      <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 shadow-sm flex-shrink-0 z-40">
+      <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-100 shadow-sm flex-shrink-0 z-40">
         <div className="flex items-center gap-1 select-none flex-shrink-0">
-          <span className="text-lg font-black tracking-tight text-gray-900 dark:text-white">Scenes</span>
+          <span className="text-lg font-black tracking-tight text-gray-900">Scenes</span>
           <span className="text-lg font-black tracking-tight text-indigo-600">LIT</span>
         </div>
         <div className="flex-1 min-w-0 relative">
@@ -63,26 +63,9 @@ export default function App() {
             placeholder="Search events..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-full text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 outline-none focus:ring-2 focus:ring-indigo-300 transition-all"
+            className="w-full pl-9 pr-4 py-2 bg-gray-100 rounded-full text-sm text-gray-700 placeholder-gray-400 outline-none focus:ring-2 focus:ring-indigo-300 transition-all"
           />
         </div>
-        {/* Dark mode toggle — mobile */}
-        <button
-          onClick={toggleDark}
-          className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 flex-shrink-0 transition"
-          title={darkMode ? 'Light mode' : 'Dark mode'}
-        >
-          {darkMode ? (
-            <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="5" strokeWidth="2" />
-              <path strokeLinecap="round" strokeWidth="2" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-            </svg>
-          ) : (
-            <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-            </svg>
-          )}
-        </button>
       </header>
 
       {/* Desktop header */}
@@ -90,14 +73,44 @@ export default function App() {
         <Navbar searchTerm={searchTerm} onSearchChange={setSearchTerm} darkMode={darkMode} onToggleDark={toggleDark} />
       </div>
 
+      {/* Category bar — desktop and mobile */}
+      <div className="flex-shrink-0 flex items-center gap-2 px-4 md:px-6 py-2.5 bg-white md:dark:bg-gray-900 border-b border-gray-100 md:dark:border-gray-800 overflow-x-auto no-scrollbar z-30">
+        <button
+          onClick={() => setSelectedCategory(null)}
+          className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+            selectedCategory === null
+              ? 'bg-indigo-600 text-white shadow-sm'
+              : 'bg-gray-100 md:dark:bg-gray-800 text-gray-600 md:dark:text-gray-300 hover:bg-gray-200 md:dark:hover:bg-gray-700'
+          }`}
+        >
+          All
+        </button>
+        {categoriesLoading ? (
+          [1, 2, 3].map(i => (
+            <div key={i} className="flex-shrink-0 h-7 w-20 rounded-full bg-gray-100 md:dark:bg-gray-700 animate-pulse" />
+          ))
+        ) : (
+          categories.map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                selectedCategory === cat.id
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'bg-gray-100 md:dark:bg-gray-800 text-gray-600 md:dark:text-gray-300 hover:bg-gray-200 md:dark:hover:bg-gray-700'
+              }`}
+            >
+              {cat.icon && <span className="text-sm">{cat.icon}</span>}
+              {cat.name}
+            </button>
+          ))
+        )}
+      </div>
+
       {/* Desktop layout */}
       <div className="hidden md:flex flex-1 overflow-hidden gap-6 p-6">
         <div className="w-80 xl:w-96 flex-shrink-0 overflow-hidden">
           <SidebarPanel
-            categories={categories}
-            categoriesLoading={categoriesLoading}
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
             events={events}
             eventsLoading={eventsLoading}
             onEventClick={handleEventClick}

@@ -47,7 +47,8 @@ function createEventIcon(imageUrl) {
   })
 }
 
-/** Cluster icon: up to 9 cards in a 3×3 stepped/overlapping grid + count pill */
+/** Cluster icon: up to 9 cards in a stepped/overlapping grid + count pill.
+ *  4 tiles → 2×2; 5 tiles → 3+2 with bottom row centred; else 3-col grid. */
 function createClusterIcon(cluster) {
   const markers = cluster.getAllChildMarkers()
   const count = markers.length
@@ -55,21 +56,32 @@ function createClusterIcon(cluster) {
 
   const CARD = 34
   const STEP = 22
-  const COL_ARC = [7, 0, 7]
-  const COL_ROT = [-6, 0, 6]
+  const COLS = thumbs.length === 4 ? 2 : 3
+  const COL_ARC = COLS === 2 ? [5, 5] : [7, 0, 7]
+  const COL_ROT = COLS === 2 ? [-5, 5] : [-6, 0, 6]
 
-  const cols = Math.min(thumbs.length, 3)
-  const rows = Math.ceil(thumbs.length / 3)
-  const gridW = (cols - 1) * STEP + CARD
-  const gridH = (rows - 1) * STEP + CARD + Math.max(...COL_ARC.slice(0, cols))
+  const rows = Math.ceil(thumbs.length / COLS)
+  const gridW = (COLS - 1) * STEP + CARD
+  const gridH = (rows - 1) * STEP + CARD + Math.max(...COL_ARC.slice(0, COLS))
 
   const cards = thumbs
     .map((m, i) => {
-      const col = i % 3
-      const row = Math.floor(i / 3)
-      const x = col * STEP
-      const y = row * STEP + COL_ARC[col]
-      const rot = COL_ROT[col]
+      const col = i % COLS
+      const row = Math.floor(i / COLS)
+      let x = col * STEP
+      let y = row * STEP + COL_ARC[col]
+      let rot = COL_ROT[col]
+
+      // 5 tiles: centre-align the 2-tile bottom row
+      if (thumbs.length === 5 && row === 1) {
+        const posInRow = i - COLS
+        const rowSpan = STEP + CARD // (2-1)*STEP + CARD
+        const startX = (gridW - rowSpan) / 2
+        x = startX + posInRow * STEP
+        y = row * STEP + 4
+        rot = posInRow === 0 ? -3 : 3
+      }
+
       const url = m.options.eventImageUrl
       const inner = url
         ? `<img src="${url}" style="width:${CARD}px;height:${CARD}px;object-fit:cover;" />`
