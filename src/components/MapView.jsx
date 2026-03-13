@@ -275,13 +275,15 @@ export default function MapView({ events, userLocation }) {
           maxClusterRadius={60}
           showCoverageOnHover={false}
         >
-          {events.map((event) => (
-            <EventMarker
-              key={event.id}
-              event={event}
-              onLongPress={handleLongPress}
-            />
-          ))}
+          {events
+            .filter((e) => e.venues?.latitude != null && e.venues?.longitude != null)
+            .map((event) => (
+              <EventMarker
+                key={event.id}
+                event={event}
+                onLongPress={handleLongPress}
+              />
+            ))}
         </MarkerClusterGroup>
       </MapContainer>
 
