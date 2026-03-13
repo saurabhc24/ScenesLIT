@@ -1,6 +1,5 @@
-import { scrapeEventbrite } from './sources/eventbrite.js'
 import { scrapeDistrict } from './sources/district.js'
-import { scrapeTicketmaster } from './sources/ticketmaster.js'
+import { scrapeBookMyShow } from './sources/bookmyshow.js'
 import { ensureCategory, upsertVenue, upsertEvent } from './lib/db.js'
 
 // Configure cities via env or default to major Indian cities
@@ -11,8 +10,7 @@ const CITIES = (
 
 const SOURCES = [
   { name: 'District', fn: scrapeDistrict },
-  { name: 'Eventbrite', fn: scrapeEventbrite },
-  { name: 'Ticketmaster', fn: scrapeTicketmaster },
+  { name: 'BookMyShow', fn: scrapeBookMyShow },
 ]
 
 async function processItem({ venue: venueData, event: eventData }) {
