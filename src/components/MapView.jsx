@@ -167,7 +167,14 @@ function EventMarker({ event, onLongPress, isHovered, mode }) {
   const icon = isHovered ? createEventIconHovered(event.image_url) : createEventIcon(event.image_url)
 
   function startPress(e) {
-    if (e.originalEvent) e.originalEvent.preventDefault()
+    // Clear any stale timer — both touchstart and mousedown fire on mobile,
+    // so startPress is called twice; the second call must not leave a ghost timer
+    clearTimeout(longPressTimer.current)
+    // Don't preventDefault on touchstart: it suppresses the browser's synthetic
+    // click event, which is what we rely on in handleClick for mobile taps
+    if (e.originalEvent && e.originalEvent.type !== 'touchstart') {
+      e.originalEvent.preventDefault()
+    }
     didLongPress.current = false
     longPressTimer.current = setTimeout(() => {
       didLongPress.current = true
