@@ -14,9 +14,9 @@ export default function LocationPermissionDialog({ open, onAllow, onSelectCity }
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-xl w-[90%] max-w-sm p-6 flex flex-col gap-5 animate-fade-in">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-[90%] max-w-sm p-6 flex flex-col gap-5 animate-fade-in">
         {/* Icon */}
-        <div className="mx-auto w-14 h-14 bg-indigo-50 rounded-full flex items-center justify-center">
+        <div className="mx-auto w-14 h-14 bg-indigo-50 dark:bg-indigo-950 rounded-full flex items-center justify-center">
           <svg className="w-7 h-7 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -26,8 +26,8 @@ export default function LocationPermissionDialog({ open, onAllow, onSelectCity }
         </div>
 
         <div className="text-center">
-          <h2 className="text-lg font-bold text-gray-900">Discover events near you</h2>
-          <p className="text-sm text-gray-500 mt-1">Allow location access to see what's happening around you</p>
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">Discover events near you</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Allow location access to see what's happening around you</p>
         </div>
 
         <button
@@ -38,9 +38,9 @@ export default function LocationPermissionDialog({ open, onAllow, onSelectCity }
         </button>
 
         <div className="flex items-center gap-3">
-          <div className="flex-1 h-px bg-gray-200" />
-          <span className="text-xs text-gray-400">or pick a city</span>
-          <div className="flex-1 h-px bg-gray-200" />
+          <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+          <span className="text-xs text-gray-400 dark:text-gray-500">or pick a city</span>
+          <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
         </div>
 
         <div className="flex flex-wrap gap-2 justify-center">
@@ -48,7 +48,7 @@ export default function LocationPermissionDialog({ open, onAllow, onSelectCity }
             <button
               key={city.name}
               onClick={() => onSelectCity(city.lat, city.lng)}
-              className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-full hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+              className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-full hover:bg-indigo-50 dark:hover:bg-indigo-950 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
             >
               {city.name}
             </button>

@@ -1,8 +1,9 @@
-import { useRef, useState, useCallback, forwardRef, useImperativeHandle } from 'react'
+import { useRef, useState, useCallback, useEffect, forwardRef, useImperativeHandle } from 'react'
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
 import EventPopup from './EventPopup'
+import ClusterPanel from './ClusterPanel'
 
 // Fix Leaflet default icon paths broken by Vite bundling
 delete L.Icon.Default.prototype._getIconUrl
@@ -15,7 +16,6 @@ L.Icon.Default.mergeOptions({
 const LONG_PRESS_MS = 500
 const LOCATION_THRESHOLD = 0.02 // ~2 km in degrees
 
-// isFinite(null) === true in JS, so we need a stricter check
 function isValidCoord(v) {
   return typeof v === 'number' && isFinite(v)
 }
@@ -26,7 +26,7 @@ function distanceDeg(a, b) {
   return Math.sqrt(dlat * dlat + dlng * dlng)
 }
 
-/** 50×50 white square, 8px border-radius, event image with 2px margin (46×46 image) */
+/** 50×50 white square marker with event image */
 function createEventIcon(imageUrl) {
   const img = imageUrl
     ? `<img src="${imageUrl}" style="width:46px;height:46px;object-fit:cover;border-radius:6px;margin:2px;display:block;" />`
@@ -53,11 +53,10 @@ function createClusterIcon(cluster) {
   const count = markers.length
   const thumbs = markers.slice(0, 9)
 
-  const CARD = 34   // card size px
-  const STEP = 22   // offset between cards (overlap = CARD - STEP = 12px)
-  // Arc: outer cards in a row drop down, middle card stays at row baseline
-  const COL_ARC = [7, 0, 7]     // extra Y drop (px) per column position
-  const COL_ROT = [-6, 0, 6]    // rotation (deg) per column position
+  const CARD = 34
+  const STEP = 22
+  const COL_ARC = [7, 0, 7]
+  const COL_ROT = [-6, 0, 6]
 
   const cols = Math.min(thumbs.length, 3)
   const rows = Math.ceil(thumbs.length / 3)
@@ -156,6 +155,7 @@ function EventMarker({ event, onLongPress }) {
     <Marker
       position={[venue.latitude, venue.longitude]}
       icon={icon}
+      eventId={event.id}
       eventImageUrl={event.image_url}
       eventHandlers={{
         mousedown: startPress,
@@ -169,36 +169,40 @@ function EventMarker({ event, onLongPress }) {
 }
 
 /**
- * Lives inside MapContainer:
- * - Flies to userLocation on first load
- * - Tracks moveend to show/hide the "My location" button
- * - Renders user location dot + optional "My location" button
+ * Fits map to all events on first load (shows events on both desktop and mobile).
+ * Also renders the user location dot and "My location" button.
  */
-function MapControls({ userLocation, showBtn, setShowBtn }) {
+function MapControls({ userLocation, showBtn, setShowBtn, events }) {
   const map = useMap()
-  const initialFlown = useRef(false)
+  const initialFit = useRef(false)
 
   const validLoc = isValidCoord(userLocation?.lat) && isValidCoord(userLocation?.lng)
-  if (validLoc && !initialFlown.current) {
-    initialFlown.current = true
-    map.flyTo([userLocation.lat, userLocation.lng], 13, { duration: 1.5 })
-  }
+
+  // Fit bounds to show all events (+ user location) once events load
+  useEffect(() => {
+    if (initialFit.current || events.length === 0) return
+    const pts = events
+      .filter(e => isValidCoord(e.venues?.latitude) && isValidCoord(e.venues?.longitude))
+      .map(e => [e.venues.latitude, e.venues.longitude])
+    if (pts.length === 0) return
+    if (validLoc) pts.push([userLocation.lat, userLocation.lng])
+    initialFit.current = true
+    try {
+      map.fitBounds(L.latLngBounds(pts), { padding: [50, 50], maxZoom: 13, animate: true })
+    } catch (_) {}
+  }, [events]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useMapEvents({
     moveend() {
       if (!validLoc) return
       const c = map.getCenter()
-      const dist = distanceDeg(
-        [c.lat, c.lng],
-        [userLocation.lat, userLocation.lng]
-      )
-      setShowBtn(dist > LOCATION_THRESHOLD)
+      setShowBtn(distanceDeg([c.lat, c.lng], [userLocation.lat, userLocation.lng]) > LOCATION_THRESHOLD)
     },
   })
 
   return (
     <>
-      {/* User location dot marker */}
+      {/* User location dot */}
       {validLoc && (
         <Marker
           position={[userLocation.lat, userLocation.lng]}
@@ -210,10 +214,7 @@ function MapControls({ userLocation, showBtn, setShowBtn }) {
 
       {/* "My location" button — shown when map has panned away */}
       {showBtn && validLoc && (
-        <div
-          className="leaflet-bottom leaflet-right"
-          style={{ zIndex: 1000, pointerEvents: 'auto' }}
-        >
+        <div className="leaflet-bottom leaflet-right" style={{ zIndex: 1000, pointerEvents: 'auto' }}>
           <div className="leaflet-control m-4">
             <button
               onClick={() => map.flyTo([userLocation.lat, userLocation.lng], 13, { duration: 1.2 })}
@@ -234,7 +235,7 @@ function MapControls({ userLocation, showBtn, setShowBtn }) {
   )
 }
 
-/** Inner component that exposes the map instance via imperative handle */
+/** Exposes flyToEvent on the mapRef */
 function FlyToHelper({ mapRef }) {
   const map = useMap()
   useImperativeHandle(mapRef, () => ({
@@ -247,20 +248,31 @@ function FlyToHelper({ mapRef }) {
   return null
 }
 
-const MapView = forwardRef(function MapView({ events, userLocation }, ref) {
+const MapView = forwardRef(function MapView({ events, userLocation, darkMode }, ref) {
   const [popupEvent, setPopupEvent] = useState(null)
+  const [clusterEvents, setClusterEvents] = useState([])
   const [showLocationBtn, setShowLocationBtn] = useState(false)
 
   const handleLongPress = useCallback((event) => setPopupEvent(event), [])
+
+  const handleClusterClick = useCallback((e) => {
+    const childMarkers = e.layer.getAllChildMarkers()
+    const ids = new Set(childMarkers.map(m => m.options.eventId))
+    const clusterEvts = events.filter(ev => ids.has(ev.id))
+    setClusterEvents(clusterEvts)
+  }, [events])
 
   const hasValidLocation = isValidCoord(userLocation?.lat) && isValidCoord(userLocation?.lng)
   const defaultCenter = hasValidLocation
     ? [userLocation.lat, userLocation.lng]
     : [18.9388, 72.8354]
 
+  const tileUrl = darkMode
+    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+
   return (
     <div className="relative w-full h-full">
-      {/* Keyframe for user location pulse — injected once */}
       <style>{`
         @keyframes sceneslit-pulse {
           0%   { transform: scale(1);   opacity: 0.7; }
@@ -277,10 +289,10 @@ const MapView = forwardRef(function MapView({ events, userLocation }, ref) {
       >
         <FlyToHelper mapRef={ref} />
 
-        {/* Monochrome CartoDB Positron — parks light green, water light blue */}
         <TileLayer
+          key={darkMode ? 'dark' : 'light'}
           attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+          url={tileUrl}
           subdomains="abcd"
           maxZoom={19}
         />
@@ -289,6 +301,7 @@ const MapView = forwardRef(function MapView({ events, userLocation }, ref) {
           userLocation={userLocation}
           showBtn={showLocationBtn}
           setShowBtn={setShowLocationBtn}
+          events={events}
         />
 
         <MarkerClusterGroup
@@ -296,9 +309,11 @@ const MapView = forwardRef(function MapView({ events, userLocation }, ref) {
           iconCreateFunction={createClusterIcon}
           maxClusterRadius={60}
           showCoverageOnHover={false}
+          zoomToBoundsOnClick={false}
+          eventHandlers={{ clusterclick: handleClusterClick }}
         >
           {events
-            .filter((e) => isValidCoord(e.venues?.latitude) && isValidCoord(e.venues?.longitude))
+            .filter(e => isValidCoord(e.venues?.latitude) && isValidCoord(e.venues?.longitude))
             .map((event) => (
               <EventMarker
                 key={event.id}
@@ -309,8 +324,21 @@ const MapView = forwardRef(function MapView({ events, userLocation }, ref) {
         </MarkerClusterGroup>
       </MapContainer>
 
+      {/* Long-press / sidebar-click event detail popup */}
       {popupEvent && (
         <EventPopup event={popupEvent} onClose={() => setPopupEvent(null)} />
+      )}
+
+      {/* Cluster panel — slide in from right (desktop) or bottom (mobile) */}
+      {clusterEvents.length > 0 && (
+        <ClusterPanel
+          events={clusterEvents}
+          onClose={() => setClusterEvents([])}
+          onEventClick={(event) => {
+            setClusterEvents([])
+            setPopupEvent(event)
+          }}
+        />
       )}
     </div>
   )

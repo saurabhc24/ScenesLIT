@@ -42,15 +42,15 @@ export default function EventCard({ event, onClick, isSelected }) {
 
   return (
     <div
-      className={`group flex flex-col bg-white rounded-xl border overflow-hidden cursor-pointer hover:shadow-md transition-all duration-200 ${
+      className={`group flex flex-col bg-white dark:bg-gray-800 rounded-xl border overflow-hidden cursor-pointer hover:shadow-md transition-all duration-200 ${
         isSelected
-          ? 'border-indigo-400 ring-2 ring-indigo-100 shadow-md'
-          : 'border-gray-200 hover:border-gray-300'
+          ? 'border-indigo-400 ring-2 ring-indigo-100 dark:ring-indigo-900 shadow-md'
+          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
       }`}
       onClick={onClick}
     >
       {/* Banner */}
-      <div className="relative w-full aspect-video bg-gray-100 overflow-hidden">
+      <div className="relative w-full aspect-video bg-gray-100 dark:bg-gray-700 overflow-hidden">
         {event.image_url ? (
           <img
             src={event.image_url}
@@ -59,7 +59,7 @@ export default function EventCard({ event, onClick, isSelected }) {
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50">
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950">
             <span className="text-3xl">🎭</span>
           </div>
         )}
@@ -70,12 +70,12 @@ export default function EventCard({ event, onClick, isSelected }) {
 
       {/* Info */}
       <div className="flex flex-col gap-1.5 p-3">
-        <h3 className="text-sm font-semibold text-gray-900 leading-snug line-clamp-2">
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-white leading-snug line-clamp-2">
           {event.title}
         </h3>
 
         {venue?.name && (
-          <div className="flex items-center gap-1 text-xs text-gray-500">
+          <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
             <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -87,7 +87,7 @@ export default function EventCard({ event, onClick, isSelected }) {
         )}
 
         {date && (
-          <div className="flex items-center gap-1 text-xs text-gray-500">
+          <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
             <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />

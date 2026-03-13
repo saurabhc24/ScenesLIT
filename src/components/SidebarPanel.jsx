@@ -11,10 +11,10 @@ export default function SidebarPanel({
   selectedEventId,
 }) {
   return (
-    <div className="flex flex-col h-full border border-gray-200 rounded-[20px] overflow-hidden bg-white">
+    <div className="flex flex-col h-full border border-gray-200 dark:border-gray-700 rounded-[20px] overflow-hidden bg-white dark:bg-gray-800">
       {/* Category filter pills */}
-      <div className="flex-shrink-0 px-4 pt-4 pb-3 border-b border-gray-100">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Categories</p>
+      <div className="flex-shrink-0 px-4 pt-4 pb-3 border-b border-gray-100 dark:border-gray-700">
+        <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Categories</p>
         <div className="flex flex-wrap gap-2">
           {/* All pill */}
           <button
@@ -22,7 +22,7 @@ export default function SidebarPanel({
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
               selectedCategory === null
                 ? 'bg-indigo-600 text-white shadow-sm'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
             }`}
           >
             All
@@ -31,7 +31,7 @@ export default function SidebarPanel({
           {categoriesLoading ? (
             <div className="flex gap-2">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-7 w-20 rounded-full bg-gray-100 animate-pulse" />
+                <div key={i} className="h-7 w-20 rounded-full bg-gray-100 dark:bg-gray-700 animate-pulse" />
               ))}
             </div>
           ) : (
@@ -42,7 +42,7 @@ export default function SidebarPanel({
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                   selectedCategory === cat.id
                     ? 'bg-indigo-600 text-white shadow-sm'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
                 {cat.icon && <span className="text-sm">{cat.icon}</span>}
@@ -57,20 +57,20 @@ export default function SidebarPanel({
       <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-4 space-y-3">
         {eventsLoading ? (
           Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="rounded-xl overflow-hidden border border-gray-100">
-              <div className="aspect-video bg-gray-100 animate-pulse" />
+            <div key={i} className="rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700">
+              <div className="aspect-video bg-gray-100 dark:bg-gray-700 animate-pulse" />
               <div className="p-3 space-y-2">
-                <div className="h-4 bg-gray-100 rounded animate-pulse w-3/4" />
-                <div className="h-3 bg-gray-100 rounded animate-pulse w-1/2" />
-                <div className="h-3 bg-gray-100 rounded animate-pulse w-1/3" />
+                <div className="h-4 bg-gray-100 dark:bg-gray-700 rounded animate-pulse w-3/4" />
+                <div className="h-3 bg-gray-100 dark:bg-gray-700 rounded animate-pulse w-1/2" />
+                <div className="h-3 bg-gray-100 dark:bg-gray-700 rounded animate-pulse w-1/3" />
               </div>
             </div>
           ))
         ) : events.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-gray-400">
             <span className="text-4xl mb-3">🔍</span>
-            <p className="text-sm font-medium">No events found</p>
-            <p className="text-xs mt-1">Try a different search or category</p>
+            <p className="text-sm font-medium dark:text-gray-400">No events found</p>
+            <p className="text-xs mt-1 dark:text-gray-500">Try a different search or category</p>
             {selectedCategory && (
               <button
                 onClick={() => onCategoryChange(null)}

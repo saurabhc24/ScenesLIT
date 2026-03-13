@@ -49,3 +49,21 @@
 .leaflet-bottom {
   z-index: 2 !important;
 }
+
+/* Cluster panel slide animations */
+@keyframes slide-up {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes slide-in-right {
+  from { transform: translateX(calc(100% + 16px)); opacity: 0; }
+  to   { transform: translateX(0);                  opacity: 1; }
+}
+.cluster-panel {
+  animation: slide-up 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+}
+@media (min-width: 768px) {
+  .cluster-panel {
+    animation: slide-in-right 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+}

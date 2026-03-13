@@ -15,6 +15,18 @@ export default function App() {
   const [selectedEventId, setSelectedEventId] = useState(null)
   const mapRef = useRef(null)
 
+  // Dark mode — persisted to localStorage
+  const [darkMode, setDarkMode] = useState(() => {
+    try { return localStorage.getItem('darkMode') === 'true' } catch { return false }
+  })
+  function toggleDark() {
+    setDarkMode(d => {
+      const next = !d
+      try { localStorage.setItem('darkMode', String(next)) } catch {}
+      return next
+    })
+  }
+
   const { location: userLocation, showDialog, handleAllow, handleSelectCity } = useGeolocation()
   const { categories, loading: categoriesLoading } = useCategories()
   const { events, loading: eventsLoading } = useEvents({ searchTerm, categoryId: selectedCategory })
@@ -29,11 +41,12 @@ export default function App() {
   }, [])
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
+    <div className={`flex flex-col h-screen overflow-hidden bg-gray-50 dark:bg-gray-900 transition-colors${darkMode ? ' dark' : ''}`}>
+
       {/* Mobile header */}
-      <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-white shadow-sm flex-shrink-0 z-40">
+      <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 shadow-sm flex-shrink-0 z-40">
         <div className="flex items-center gap-1 select-none flex-shrink-0">
-          <span className="text-lg font-black tracking-tight text-gray-900">Scenes</span>
+          <span className="text-lg font-black tracking-tight text-gray-900 dark:text-white">Scenes</span>
           <span className="text-lg font-black tracking-tight text-indigo-600">LIT</span>
         </div>
         <div className="flex-1 min-w-0 relative">
@@ -45,14 +58,31 @@ export default function App() {
             placeholder="Search events..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-gray-100 rounded-full text-sm text-gray-700 placeholder-gray-400 outline-none focus:ring-2 focus:ring-indigo-300 transition-all"
+            className="w-full pl-9 pr-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-full text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 outline-none focus:ring-2 focus:ring-indigo-300 transition-all"
           />
         </div>
+        {/* Dark mode toggle — mobile */}
+        <button
+          onClick={toggleDark}
+          className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 flex-shrink-0 transition"
+          title={darkMode ? 'Light mode' : 'Dark mode'}
+        >
+          {darkMode ? (
+            <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="5" strokeWidth="2" />
+              <path strokeLinecap="round" strokeWidth="2" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+            </svg>
+          ) : (
+            <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+          )}
+        </button>
       </header>
 
       {/* Desktop header */}
       <div className="hidden md:block">
-        <Navbar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+        <Navbar searchTerm={searchTerm} onSearchChange={setSearchTerm} darkMode={darkMode} onToggleDark={toggleDark} />
       </div>
 
       {/* Desktop layout */}
@@ -69,17 +99,17 @@ export default function App() {
             selectedEventId={selectedEventId}
           />
         </div>
-        <div className="flex-1 border border-gray-200 rounded-[20px] overflow-hidden">
-          <MapView ref={mapRef} events={events} userLocation={userLocation} />
+        <div className="flex-1 border border-gray-200 dark:border-gray-700 rounded-[20px] overflow-hidden">
+          <MapView ref={mapRef} events={events} userLocation={userLocation} darkMode={darkMode} />
         </div>
       </div>
 
       {/* Mobile layout */}
       <div className="flex md:hidden flex-1 overflow-hidden">
-        <MapView ref={mapRef} events={events} userLocation={userLocation} />
+        <MapView ref={mapRef} events={events} userLocation={userLocation} darkMode={darkMode} />
       </div>
 
-      {/* Event detail popup */}
+      {/* Event detail popup (sidebar click or long press) */}
       {selectedEvent && (
         <EventPopup event={selectedEvent} onClose={() => { setSelectedEvent(null); setSelectedEventId(null) }} />
       )}
