@@ -158,6 +158,21 @@ export default function App() {
         <EventPopup event={selectedEvent} onClose={() => { setSelectedEvent(null); setSelectedEventId(null) }} />
       )}
 
+      {/* Footer credit */}
+      <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-[999] pointer-events-none">
+        <p className="text-[11px] text-gray-400 whitespace-nowrap pointer-events-auto">
+          a late-night passion project by{' '}
+          <a
+            href="https://saurabhchandra.framer.website/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-500 font-medium underline underline-offset-2 hover:text-primary transition-colors"
+          >
+            Saurabh
+          </a>
+        </p>
+      </div>
+
       {/* Location permission dialog */}
       <LocationPermissionDialog
         open={showDialog}
