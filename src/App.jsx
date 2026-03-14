@@ -116,11 +116,8 @@ export default function App() {
         </div>
       </div>
 
-      {/* Mobile layout — 16px padding, 8px gaps, safe-area bottom */}
-      <div
-        className="flex md:hidden flex-col flex-1 overflow-hidden bg-white pt-4 px-4 gap-2"
-        style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 1rem))' }}
-      >
+      {/* Mobile layout — 16px padding, 8px gaps */}
+      <div className="flex md:hidden flex-col flex-1 overflow-hidden bg-white pt-4 px-4 gap-2">
         {/* Mobile header: Logo pill + Search */}
         <header className="flex items-center gap-3 flex-shrink-0">
           <div className="flex items-center gap-0.5 bg-gray-100 px-3 py-2 rounded-full select-none flex-shrink-0">
@@ -153,25 +150,28 @@ export default function App() {
         </div>
       </div>
 
-      {/* Event detail popup (sidebar click or long press) */}
-      {selectedEvent && (
-        <EventPopup event={selectedEvent} onClose={() => { setSelectedEvent(null); setSelectedEventId(null) }} />
-      )}
-
-      {/* Footer credit */}
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[999] pointer-events-none whitespace-nowrap">
+      {/* Footer */}
+      <footer
+        className="flex-shrink-0 flex items-center justify-center bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 py-2.5"
+        style={{ paddingBottom: 'max(0.625rem, env(safe-area-inset-bottom, 0.625rem))' }}
+      >
         <p style={{ fontFamily: "'Instrument Serif', serif", fontSize: '16px', color: '#111' }}>
           A passion project by{' '}
           <a
             href="https://saurabhchandra.framer.website/"
             target="_blank"
             rel="noopener noreferrer"
-            style={{ fontFamily: "'Lobster', cursive", fontSize: '16px', color: '#111', textDecoration: 'none', pointerEvents: 'auto' }}
+            style={{ fontFamily: "'Lobster', cursive", fontSize: '16px', color: '#111', textDecoration: 'none' }}
           >
             Saurabh
           </a>
         </p>
-      </div>
+      </footer>
+
+      {/* Event detail popup (sidebar click or long press) */}
+      {selectedEvent && (
+        <EventPopup event={selectedEvent} onClose={() => { setSelectedEvent(null); setSelectedEventId(null) }} />
+      )}
 
       {/* Location permission dialog */}
       <LocationPermissionDialog
