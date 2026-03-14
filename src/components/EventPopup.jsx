@@ -33,7 +33,7 @@ export default function EventPopup({ event, onClose }) {
 
   const venue = event.venues
   const price = formatPrice(event.price_min, event.price_max, event.currency)
-  const date = formatDate(event.start_datetime)
+  const date = formatDate(event.start_time)
 
   function handleGetTickets() {
     if (event.source_url) {

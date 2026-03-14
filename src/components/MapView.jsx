@@ -198,7 +198,7 @@ const EventMarker = memo(function EventMarker({ event, onLongPress, isHovered, m
     )
   }
 
-  // Desktop: click → open URL, long-press → EventPopup
+  // Desktop: click → EventPopup
   return (
     <Marker
       position={[venue.latitude, venue.longitude]}
@@ -207,9 +207,7 @@ const EventMarker = memo(function EventMarker({ event, onLongPress, isHovered, m
       eventId={event.id}
       eventImageUrl={event.image_url}
       eventHandlers={{
-        mousedown: startPress,
-        mouseup: endPress,
-        click: () => { if (!didLongPress.current && event.source_url) window.open(event.source_url, '_blank', 'noopener,noreferrer') },
+        click: () => onLongPress(event),
         contextmenu: (e) => { if (e.originalEvent) e.originalEvent.preventDefault() },
       }}
     />

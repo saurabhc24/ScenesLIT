@@ -38,7 +38,7 @@ function SourceBadge({ platform }) {
 export default function EventCard({ event, onClick, isSelected, onMouseEnter, onMouseLeave }) {
   const venue = event.venues
   const price = formatPrice(event.price_min, event.price_max, event.currency)
-  const date = formatDate(event.start_datetime)
+  const date = formatDate(event.start_time)
 
   return (
     <button
