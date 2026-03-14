@@ -1,17 +1,17 @@
 /**
- * BookMyShow — Playwright scraper
+ * BookMyShow — __INITIAL_STATE__ scraper
  *
- * Step 1: Navigate to the events listing page for a city (JS-rendered)
- * Step 2: Scroll to collect event URLs
- * Step 3: Visit each event page and extract JSON-LD structured data
- *         (Schema.org Event — name, dates, venue, price, image)
+ * Extracts all event data from window.__INITIAL_STATE__.explore.events.listings
+ * on the BMS explore/events listing page. No individual event page visits needed
+ * (avoids Cloudflare protection on detail pages).
+ *
+ * Dates are decoded from the base64-encoded text overlay embedded in image URLs.
+ * e.g. ie-VGh1LCAxOSBNYXI%3D → base64 → "Thu, 19 Mar"
  */
 
 import { chromium } from 'playwright'
 
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-const CONCURRENT_TABS = 3
-const MAX_EVENTS = 40
 
 const CITY_SLUG = {
   Mumbai:    'mumbai',
@@ -25,7 +25,7 @@ const CITY_SLUG = {
   Goa:       'goa',
 }
 
-// Fallback coordinates when JSON-LD has no geo data
+// Fallback coordinates used for all BMS events (listing page has no venue lat/lng)
 const CITY_CENTERS = {
   Mumbai:    { lat: 18.9388, lng: 72.8354 },
   Delhi:     { lat: 28.6139, lng: 77.2090 },
@@ -38,115 +38,94 @@ const CITY_CENTERS = {
   Goa:       { lat: 15.2993, lng: 74.1240 },
 }
 
-// Find the Event JSON-LD block from a BMS event page
-async function extractJsonLd(page, url) {
-  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 })
-  await page.waitForTimeout(2000)
+// Decode the first text overlay from a BMS image URL
+// Image URL encodes date as: l-text,ie-{base64} → e.g. "Thu, 19 Mar"
+function extractDateFromImgUrl(imgUrl) {
+  const match = imgUrl.match(/l-text,ie-([A-Za-z0-9+/_%]+)/)
+  if (!match) return null
   try {
-    const scripts = await page.$$eval(
-      'script[type="application/ld+json"]',
-      (els) => els.map((el) => {
-        try { return JSON.parse(el.textContent) } catch { return null }
-      }).filter(Boolean)
-    )
-    return scripts.find((s) => {
-      const types = Array.isArray(s['@type']) ? s['@type'] : [s['@type']]
-      return types.some((t) => typeof t === 'string' && t.includes('Event'))
-    }) || null
-  } catch {
-    return null
-  }
+    return Buffer.from(decodeURIComponent(match[1]), 'base64').toString('utf8')
+  } catch { return null }
 }
 
-// Get event URLs from the BMS explore/events listing page
-async function getEventUrls(page, city) {
-  const slug = CITY_SLUG[city]
-  await page.goto(`https://in.bookmyshow.com/explore/events-${slug}`, {
-    waitUntil: 'domcontentloaded',
-    timeout: 30000,
-  })
-  await page.waitForTimeout(3000)
-
-  // Dismiss any modals/overlays
-  try { await page.keyboard.press('Escape') } catch {}
-  await page.waitForTimeout(500)
-
-  // Scroll to trigger lazy loading
-  for (let i = 0; i < 5; i++) {
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
-    await page.waitForTimeout(1500)
-  }
-
-  const urls = await page.$$eval('a[href*="/events/"]', (els) =>
-    [...new Set(
-      els
-        .map((el) => el.href)
-        .filter((h) => {
-          try {
-            const path = new URL(h).pathname
-            // Must be /events/{name}/{ET...} — not just /events or /explore/events-*
-            return path.startsWith('/events/') && path.split('/').filter(Boolean).length >= 2
-          } catch { return false }
-        })
-    )]
-  )
-
-  return urls.slice(0, MAX_EVENTS)
+// Parse "Thu, 19 Mar" or "19 Mar onwards" → ISO date string
+function parseDate(dateText) {
+  if (!dateText) return null
+  // Strip day name prefix: "Thu, 19 Mar" → "19 Mar"
+  const cleaned = dateText
+    .replace(/^[A-Za-z]{2,4},\s*/, '')
+    .replace(/\s*(onwards|onward|onward).*/i, '')
+    .trim()
+  if (!cleaned) return null
+  try {
+    const year = new Date().getFullYear()
+    let d = new Date(`${cleaned} ${year}`)
+    if (isNaN(d.getTime())) return null
+    // If the parsed date is more than 2 days in the past, it's next year
+    if (d < new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)) {
+      d = new Date(`${cleaned} ${year + 1}`)
+    }
+    return d.toISOString()
+  } catch { return null }
 }
 
-// Map JSON-LD Event to our DB shape
-function mapJsonLd(ld, city) {
-  if (!ld?.name) return null
+// Parse "₹ 1999 onwards", "₹500 - ₹2000", "FREE"
+function parsePrice(priceText) {
+  if (!priceText) return { min: null, max: null }
+  const t = priceText.trim()
+  if (/^free$/i.test(t)) return { min: 0, max: 0 }
+  const nums = t.match(/[\d,]+/g)?.map((n) => parseFloat(n.replace(/,/g, '')))
+  if (!nums?.length) return { min: null, max: null }
+  return { min: nums[0], max: nums[1] ?? null }
+}
 
+// Safely get text from a BMS card text block at a given index
+function cardText(card, idx) {
+  return card.text?.[idx]?.components?.[0]?.text?.trim() || ''
+}
+
+// Map a BMS listings card to our DB shape
+function mapCard(card, city) {
+  const ctaUrl = card.ctaUrl || ''
+  const etMatch = ctaUrl.match(/\/(ET\d+)/i)
+  if (!etMatch) return null
+
+  const title = cardText(card, 0)
+  if (!title) return null
+
+  const venueRaw = cardText(card, 1)  // "Royal Opera House Theatre: Mumbai"
+  const venueName = venueRaw.split(':')[0].trim() || 'Unknown Venue'
+
+  const category = cardText(card, 2) || 'Events'
+  const { min: priceMin, max: priceMax } = parsePrice(cardText(card, 3))
+
+  const imgUrl = card.image?.url || null
+  const startTime = parseDate(extractDateFromImgUrl(imgUrl || ''))
   const center = CITY_CENTERS[city]
-  const geo = ld.location?.geo
-  const lat = geo?.latitude ? parseFloat(geo.latitude) : center.lat
-  const lng = geo?.longitude ? parseFloat(geo.longitude) : center.lng
-
-  const offers = Array.isArray(ld.offers) ? ld.offers[0] : ld.offers
-  const priceMin = offers?.lowPrice ?? offers?.price ?? null
-  const priceMax = offers?.highPrice ?? offers?.price ?? null
-  const currency = offers?.priceCurrency ?? 'INR'
-
-  const ldType = Array.isArray(ld['@type']) ? ld['@type'][0] : ld['@type']
-  let categoryName = 'Events'
-  if (ldType && ldType !== 'Event') {
-    categoryName = ldType.replace(/Event$/, '').trim() || 'Events'
-  } else {
-    const rawKw = typeof ld.keywords === 'string'
-      ? ld.keywords
-      : Array.isArray(ld.keywords) ? ld.keywords.join(', ') : ''
-    categoryName = rawKw.split(',')[0]?.trim() || 'Events'
-  }
-
-  const urlMatch = (ld.url || '').match(/\/(ET\d+)/i)
-  const externalId = urlMatch ? `bms_${urlMatch[1]}` : `bms_${ld.name?.slice(0, 60)}`
-
-  const image = Array.isArray(ld.image) ? ld.image[0] : (ld.image || null)
 
   return {
     venue: {
-      name: ld.location?.name || 'Unknown Venue',
-      address: ld.location?.address || '',
+      name: venueName,
+      address: venueRaw,
       city,
-      latitude: lat,
-      longitude: lng,
+      latitude: center.lat,
+      longitude: center.lng,
     },
     event: {
-      title: ld.name,
-      description: ld.description?.replace(/&nbsp;/g, ' ').trim() || null,
-      category_name: categoryName,
+      title,
+      description: null,
+      category_name: category,
       city,
-      start_time: ld.startDate ?? null,
-      end_time: ld.endDate ?? null,
+      start_time: startTime,
+      end_time: null,
       price_min: priceMin,
       price_max: priceMax,
-      currency,
+      currency: 'INR',
       source_platform: 'bookmyshow',
-      source_url: ld.url || '',
-      image_url: image,
+      source_url: ctaUrl,
+      image_url: imgUrl,
       popularity_score: 0,
-      external_id: externalId,
+      external_id: `bms_${etMatch[1]}`,
     },
   }
 }
@@ -160,42 +139,39 @@ export async function scrapeBookMyShow(city) {
   const browser = await chromium.launch({ headless: true })
   try {
     const context = await browser.newContext({ userAgent: UA })
+    const page = await context.newPage()
 
-    // Step 1: collect event URLs from listing page
-    const listPage = await context.newPage()
-    let eventUrls = []
-    try {
-      eventUrls = await getEventUrls(listPage, city)
-      console.log(`[BookMyShow] Found ${eventUrls.length} event URLs for ${city}`)
-    } catch (err) {
-      console.error(`[BookMyShow] Listing page failed for ${city}: ${err.message}`)
-      return []
-    } finally {
-      await listPage.close()
+    await page.goto(`https://in.bookmyshow.com/explore/events-${CITY_SLUG[city]}`, {
+      waitUntil: 'domcontentloaded',
+      timeout: 30000,
+    })
+    await page.waitForTimeout(4000)
+    try { await page.keyboard.press('Escape') } catch {}
+
+    // Scroll to trigger lazy-loaded listings
+    for (let i = 0; i < 5; i++) {
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+      await page.waitForTimeout(1500)
     }
 
-    if (eventUrls.length === 0) return []
+    const listings = await page.evaluate(
+      () => window.__INITIAL_STATE__?.explore?.events?.listings ?? []
+    )
+    await page.close()
 
-    // Step 2: fetch each event page in parallel batches
-    const ldItems = []
-    for (let i = 0; i < eventUrls.length; i += CONCURRENT_TABS) {
-      const batch = eventUrls.slice(i, i + CONCURRENT_TABS)
-      const pages = await Promise.all(batch.map(() => context.newPage()))
-
-      const settled = await Promise.allSettled(
-        pages.map((p, idx) => extractJsonLd(p, batch[idx]))
-      )
-
-      await Promise.all(pages.map((p) => p.close()))
-
-      for (const outcome of settled) {
-        if (outcome.status === 'fulfilled' && outcome.value) {
-          ldItems.push(outcome.value)
+    const results = []
+    const seen = new Set()
+    for (const listing of listings) {
+      for (const card of listing.cards ?? []) {
+        const item = mapCard(card, city)
+        if (item && !seen.has(item.event.external_id)) {
+          seen.add(item.event.external_id)
+          results.push(item)
         }
       }
     }
 
-    return ldItems.map((ld) => mapJsonLd(ld, city)).filter(Boolean)
+    return results
   } finally {
     await browser.close()
   }
