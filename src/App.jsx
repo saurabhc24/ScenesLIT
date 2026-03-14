@@ -90,7 +90,7 @@ export default function App() {
   )
 
   return (
-    <div className="flex flex-col h-[100dvh] overflow-hidden bg-gray-50 dark:bg-gray-900 transition-colors">
+    <div className="flex flex-col h-[100dvh] overflow-hidden bg-white dark:bg-gray-900 transition-colors">
 
       {/* Desktop: unified navbar + category bar */}
       <div className="hidden md:block flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
@@ -101,7 +101,7 @@ export default function App() {
       </div>
 
       {/* Desktop layout */}
-      <div className="hidden md:flex flex-1 overflow-hidden gap-6 p-6">
+      <div className="hidden md:flex flex-1 overflow-hidden gap-6 px-6 pt-6 pb-0">
         <div className="w-80 xl:w-96 flex-shrink-0 overflow-hidden">
           <SidebarPanel
             events={events}
@@ -118,9 +118,9 @@ export default function App() {
 
       {/* Mobile layout — 16px padding, 8px gaps */}
       <div className="flex md:hidden flex-col flex-1 overflow-hidden bg-white pt-4 px-4 gap-2">
-        {/* Mobile header: Logo pill + Search */}
+        {/* Mobile header: Logo + Search */}
         <header className="flex items-center gap-3 flex-shrink-0">
-          <div className="flex items-center gap-0.5 bg-gray-100 px-3 py-2 rounded-full select-none flex-shrink-0">
+          <div className="flex items-center gap-0.5 px-3 py-2 select-none flex-shrink-0">
             <span className="text-sm font-black tracking-tight text-gray-900">Scenes</span>
             <span className="text-sm font-black tracking-tight text-primary">LIT</span>
           </div>
@@ -138,11 +138,6 @@ export default function App() {
             />
           </div>
         </header>
-
-        {/* Mobile category bar */}
-        <div className="flex-shrink-0 flex items-center gap-2 overflow-x-auto no-scrollbar">
-          {categoryPills(true)}
-        </div>
 
         {/* Map — fills remaining space, rounded corners, subtle border */}
         <div className="flex-1 min-h-0 rounded-2xl overflow-hidden" style={{ border: '0.5px solid #C8C8C8' }}>
