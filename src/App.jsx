@@ -159,14 +159,14 @@ export default function App() {
       )}
 
       {/* Footer credit */}
-      <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-[999] pointer-events-none">
-        <p className="text-[11px] text-gray-400 whitespace-nowrap pointer-events-auto">
-          a late-night passion project by{' '}
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[999] pointer-events-none whitespace-nowrap">
+        <p style={{ fontFamily: "'Instrument Serif', serif", fontSize: '16px', color: '#111' }}>
+          A passion project by{' '}
           <a
             href="https://saurabhchandra.framer.website/"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-gray-500 font-medium underline underline-offset-2 hover:text-primary transition-colors"
+            style={{ fontFamily: "'Lobster', cursive", fontSize: '16px', color: '#111', textDecoration: 'none', pointerEvents: 'auto' }}
           >
             Saurabh
           </a>
