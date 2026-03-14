@@ -1,5 +1,10 @@
 import { useEffect } from 'react'
 
+const SOURCE_LOGOS = {
+  district: '/logos/district.png',
+  bookmyshow: '/logos/bookmyshow.png',
+}
+
 const CURRENCY_SYMBOLS = { INR: '₹', USD: '$', EUR: '€', GBP: '£' }
 
 function formatPrice(priceMin, priceMax, currency) {
@@ -116,8 +121,12 @@ export default function EventPopup({ event, onClose }) {
 
           <div className="flex items-center justify-between pt-1">
             <span className="text-lg font-bold text-primary">{price}</span>
-            {event.source_platform && (
-              <span className="text-xs text-gray-600 md:dark:text-gray-400 capitalize">{event.source_platform}</span>
+            {event.source_platform && SOURCE_LOGOS[event.source_platform.toLowerCase()] && (
+              <img
+                src={SOURCE_LOGOS[event.source_platform.toLowerCase()]}
+                alt={event.source_platform}
+                className="w-6 h-6 rounded object-contain"
+              />
             )}
           </div>
 
