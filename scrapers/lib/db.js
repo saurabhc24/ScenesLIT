@@ -80,6 +80,17 @@ export async function upsertVenue({ name, address, city, latitude, longitude }) 
   return data.id
 }
 
+export async function cleanupPastEvents() {
+  const today = new Date()
+  today.setUTCHours(0, 0, 0, 0) // midnight UTC — keeps anything starting today
+  const { count, error } = await supabase
+    .from('events')
+    .delete({ count: 'exact' })
+    .lt('start_time', today.toISOString())
+  if (error) throw error
+  return count ?? 0
+}
+
 export async function upsertEvent(event) {
   // Check by external_id + source_platform
   const { data: existing } = await supabase

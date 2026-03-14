@@ -1,6 +1,6 @@
 import { scrapeDistrict } from './sources/district.js'
 import { scrapeBookMyShow } from './sources/bookmyshow.js'
-import { ensureCategory, upsertVenue, upsertEvent } from './lib/db.js'
+import { ensureCategory, upsertVenue, upsertEvent, cleanupPastEvents } from './lib/db.js'
 
 // Configure cities via env or default to major Indian cities
 const CITIES = (
@@ -25,6 +25,10 @@ async function processItem({ venue: venueData, event: eventData }) {
 async function main() {
   console.log(`ScenesLIT scraper — ${new Date().toISOString()}`)
   console.log(`Cities: ${CITIES.join(', ')}\n`)
+
+  process.stdout.write('Cleaning up past events... ')
+  const deleted = await cleanupPastEvents()
+  console.log(`${deleted} deleted\n`)
 
   let totalNew = 0
   let totalUpdated = 0
