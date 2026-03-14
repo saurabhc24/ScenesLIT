@@ -152,7 +152,7 @@ export default function App() {
 
       {/* Footer */}
       <footer
-        className="flex-shrink-0 flex items-center justify-center bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 py-2.5"
+        className="flex-shrink-0 flex items-center justify-center py-2.5"
         style={{ paddingBottom: 'max(0.625rem, env(safe-area-inset-bottom, 0.625rem))' }}
       >
         <p style={{ fontFamily: "'Instrument Serif', serif", fontSize: '16px', color: '#111' }}>
