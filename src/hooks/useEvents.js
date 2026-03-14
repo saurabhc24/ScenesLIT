@@ -30,6 +30,7 @@ export function useEvents({ searchTerm = '', categoryId = null, lat = null, lng 
   useEffect(() => {
     async function fetchEvents() {
       if (!supabase) { setLoading(false); return }
+      if (lat == null || lng == null) { setEvents([]); setLoading(false); return }
       setLoading(true)
 
       let query = supabase
