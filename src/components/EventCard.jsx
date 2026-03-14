@@ -31,7 +31,7 @@ export default function EventCard({ event, onClick, isSelected, onMouseEnter, on
   return (
     <button
       type="button"
-      className={`group flex flex-col w-full text-left bg-white rounded-3xl p-4 gap-[19px] overflow-hidden cursor-pointer hover:shadow-md transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
+      className={`group flex flex-col w-full text-left bg-white rounded-3xl p-4 gap-5 overflow-hidden cursor-pointer hover:shadow-md transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
         isSelected
           ? 'shadow-md ring-2 ring-primary/10'
           : ''
@@ -56,14 +56,15 @@ export default function EventCard({ event, onClick, isSelected, onMouseEnter, on
         )}
       </div>
 
-      {/* Info row: text left, logo bottom-right */}
-      <div className="flex gap-[19px] w-full">
-        {/* Left column */}
-        <div className="flex-1 flex flex-col gap-[19px] min-w-0">
-          <h3 className="text-2xl font-bold text-black leading-snug line-clamp-2">
-            {event.title}
-          </h3>
+      {/* Title — full width */}
+      <h3 className="text-xl font-bold text-black leading-snug line-clamp-2 w-full">
+        {event.title}
+      </h3>
 
+      {/* Details row: info left, logo bottom-right */}
+      <div className="flex justify-between w-full">
+        {/* Left column */}
+        <div className="flex-1 flex flex-col gap-3 min-w-0">
           {venue?.name && (
             <div className="flex items-center gap-2 text-[#757575]">
               <svg className="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -72,7 +73,7 @@ export default function EventCard({ event, onClick, isSelected, onMouseEnter, on
                 <path strokeLinecap="round" strokeLinejoin="round"
                   d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              <span className="text-base font-medium truncate">{venue.name}</span>
+              <span className="text-sm font-medium truncate">{venue.name}</span>
             </div>
           )}
 
@@ -81,12 +82,12 @@ export default function EventCard({ event, onClick, isSelected, onMouseEnter, on
               <svg className="w-[19px] h-[19px] flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <span className="text-base font-medium">{date}</span>
+              <span className="text-sm font-medium">{date}</span>
             </div>
           )}
 
           <div className="flex items-center gap-2">
-            <span className="text-xl font-bold text-[#FF2B2B]">
+            <span className="text-base font-bold text-[#FF2B2B]">
               {price}
             </span>
           </div>
