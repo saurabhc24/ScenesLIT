@@ -37,20 +37,7 @@ export default function App() {
   const { location: userLocation, showDialog, handleAllow, handleSelectCity } = useGeolocation()
   const { categories, loading: categoriesLoading } = useCategories()
 
-  const [mapCenter, setMapCenter] = useState({ lat: null, lng: null })
-  const centerFromLocSet = useRef(false)
-  useEffect(() => {
-    if (userLocation?.lat && !centerFromLocSet.current) {
-      centerFromLocSet.current = true
-      setMapCenter({ lat: userLocation.lat, lng: userLocation.lng })
-    }
-  }, [userLocation])
-
-  const handleMapCityChange = useCallback((lat, lng) => {
-    setMapCenter(prev => (prev.lat === lat && prev.lng === lng) ? prev : { lat, lng })
-  }, [])
-
-  const { events, loading: eventsLoading } = useEvents({ searchTerm, categoryId: selectedCategory, lat: mapCenter.lat, lng: mapCenter.lng })
+  const { events, loading: eventsLoading } = useEvents({ searchTerm, categoryId: selectedCategory, lat: userLocation?.lat ?? null, lng: userLocation?.lng ?? null })
 
   const handleEventClick = useCallback((event) => {
     setSelectedEventId(event.id)
@@ -125,7 +112,7 @@ export default function App() {
           />
         </div>
         <div className="flex-1 border border-gray-200 dark:border-gray-700 rounded-[20px] overflow-hidden">
-          <MapView ref={mapRef} events={events} userLocation={userLocation} mode="desktop" hoveredEventId={hoveredEventId} onCityChange={handleMapCityChange} />
+          <MapView ref={mapRef} events={events} userLocation={userLocation} mode="desktop" hoveredEventId={hoveredEventId} />
         </div>
       </div>
 
@@ -162,7 +149,7 @@ export default function App() {
 
         {/* Map — fills remaining space, rounded corners, subtle border */}
         <div className="flex-1 min-h-0 rounded-2xl overflow-hidden" style={{ border: '0.5px solid #C8C8C8' }}>
-          <MapView ref={mapRef} events={events} userLocation={userLocation} mode="mobile" onCityChange={handleMapCityChange} />
+          <MapView ref={mapRef} events={events} userLocation={userLocation} mode="mobile" />
         </div>
       </div>
 

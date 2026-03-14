@@ -218,7 +218,7 @@ function EventMarker({ event, onLongPress, isHovered, mode }) {
  * Mobile: fits bounds to show all events on first load.
  * Also renders the user location dot and "My location" button.
  */
-function MapControls({ userLocation, showBtn, setShowBtn, onCityChange }) {
+function MapControls({ userLocation, showBtn, setShowBtn }) {
   const map = useMap()
   const initialFit = useRef(false)
 
@@ -236,7 +236,7 @@ function MapControls({ userLocation, showBtn, setShowBtn, onCityChange }) {
       if (validLoc) {
         setShowBtn(distanceDeg([c.lat, c.lng], [userLocation.lat, userLocation.lng]) > LOCATION_THRESHOLD)
       }
-      onCityChange?.(c.lat, c.lng)
+
     },
   })
 
@@ -288,7 +288,7 @@ function FlyToHelper({ mapRef }) {
   return null
 }
 
-const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desktop', hoveredEventId = null, onCityChange = null }, ref) {
+const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desktop', hoveredEventId = null }, ref) {
   const [popupEvent, setPopupEvent] = useState(null)
   const [clusterEvents, setClusterEvents] = useState([])
   const [showLocationBtn, setShowLocationBtn] = useState(false)
@@ -340,7 +340,6 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
           userLocation={userLocation}
           showBtn={showLocationBtn}
           setShowBtn={setShowLocationBtn}
-          onCityChange={onCityChange}
         />
 
         <MarkerClusterGroup
