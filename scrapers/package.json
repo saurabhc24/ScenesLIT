@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "scrape": "node --env-file=.env index.js"
+    "scrape": "node --env-file=.env index.js",
+    "maintenance": "node --env-file=.env maintenance.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",

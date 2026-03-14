@@ -91,6 +91,39 @@ export async function cleanupPastEvents() {
   return count ?? 0
 }
 
+export async function deduplicateEvents() {
+  const { data: events, error } = await supabase
+    .from('events')
+    .select('id, title, source_platform, created_at')
+    .order('created_at', { ascending: true })
+
+  if (error) throw error
+
+  const groups = {}
+  for (const e of events) {
+    const key = `${e.title}||${e.source_platform}`
+    if (!groups[key]) groups[key] = []
+    groups[key].push(e)
+  }
+
+  const idsToDelete = []
+  for (const group of Object.values(groups)) {
+    if (group.length > 1) {
+      idsToDelete.push(...group.slice(1).map(d => d.id))
+    }
+  }
+
+  if (idsToDelete.length === 0) return 0
+
+  for (let i = 0; i < idsToDelete.length; i += 100) {
+    const batch = idsToDelete.slice(i, i + 100)
+    const { error: delErr } = await supabase.from('events').delete().in('id', batch)
+    if (delErr) throw delErr
+  }
+
+  return idsToDelete.length
+}
+
 export async function upsertEvent(event) {
   // Check by external_id + source_platform
   const { data: existing } = await supabase

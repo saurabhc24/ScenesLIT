@@ -1,16 +1,63 @@
-name: Scrape Events
+name: ScenesLIT Scheduled Jobs
 
 on:
   schedule:
-    # Every 2 days at 8:30am IST (3:00am UTC)
-    - cron: '0 3 */2 * *'
-  workflow_dispatch: # Allow manual run from GitHub UI
+    # Daily at 8:30am IST (3:00am UTC) — maintenance (cleanup + dedup)
+    - cron: '0 3 * * *'
+    # Every 3rd day of month at 9:00am IST (3:30am UTC) — full scrape
+    - cron: '30 3 3,6,9,12,15,18,21,24,27,30 * *'
+  workflow_dispatch:
+    inputs:
+      job:
+        description: 'Which job to run'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+          - maintenance
+          - scrape
+          - both
 
 jobs:
-  scrape:
+  maintenance:
+    if: >-
+      github.event_name == 'schedule' ||
+      github.event.inputs.job == 'maintenance' ||
+      github.event.inputs.job == 'both'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: scrapers/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./scrapers
+        run: npm install
+
+      - name: Run maintenance (cleanup expired + deduplicate)
+        working-directory: ./scrapers
+        run: node maintenance.js
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+
+  scrape:
+    if: >-
+      always() && !failure() && !cancelled() && (
+        (github.event_name == 'schedule' && github.event.schedule == '30 3 3,6,9,12,15,18,21,24,27,30 * *') ||
+        github.event.inputs.job == 'scrape' ||
+        github.event.inputs.job == 'both'
+      )
+    needs: [maintenance]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,12 +77,10 @@ jobs:
         working-directory: ./scrapers
         run: npx playwright install chromium --with-deps
 
-      - name: Run scrapers
+      - name: Run scrapers (events within 2 months only)
         working-directory: ./scrapers
         run: node index.js
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-          EVENTBRITE_API_KEY: ${{ secrets.EVENTBRITE_API_KEY }}
           CITIES: Mumbai,Delhi,Bengaluru,Hyderabad,Chennai,Pune,Kolkata
-          TICKETMASTER_API_KEY: ${{ secrets.TICKETMASTER_API_KEY }}
