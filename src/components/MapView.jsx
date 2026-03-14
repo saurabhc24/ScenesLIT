@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useEffect, forwardRef, useImperativeHandle } from 'react'
+import { useRef, useState, useCallback, useEffect, forwardRef, useImperativeHandle, useMemo, memo } from 'react'
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
@@ -157,14 +157,17 @@ const USER_LOCATION_ICON = L.divIcon({
 })
 
 /** Individual event marker */
-function EventMarker({ event, onLongPress, isHovered, mode }) {
+const EventMarker = memo(function EventMarker({ event, onLongPress, isHovered, mode }) {
   const longPressTimer = useRef(null)
   const didLongPress = useRef(false)
   const venue = event.venues
 
-  if (!isValidCoord(venue?.latitude) || !isValidCoord(venue?.longitude)) return null
+  const icon = useMemo(
+    () => isHovered ? createEventIconHovered(event.image_url) : createEventIcon(event.image_url),
+    [isHovered, event.image_url]
+  )
 
-  const icon = isHovered ? createEventIconHovered(event.image_url) : createEventIcon(event.image_url)
+  if (!isValidCoord(venue?.latitude) || !isValidCoord(venue?.longitude)) return null
 
   // Desktop only: long-press detection (mousedown/mouseup)
   function startPress(e) {
@@ -211,7 +214,7 @@ function EventMarker({ event, onLongPress, isHovered, mode }) {
       }}
     />
   )
-}
+})
 
 /**
  * Desktop: centers on user location at zoom 12 (~10km radius) once location is available.
@@ -302,6 +305,11 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
     setClusterEvents(clusterEvts)
   }, [events])
 
+  const validEvents = useMemo(
+    () => events.filter(e => isValidCoord(e.venues?.latitude) && isValidCoord(e.venues?.longitude)),
+    [events]
+  )
+
   const hasValidLocation = isValidCoord(userLocation?.lat) && isValidCoord(userLocation?.lng)
   const defaultCenter = hasValidLocation
     ? [userLocation.lat, userLocation.lng]
@@ -348,19 +356,18 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
           maxClusterRadius={60}
           showCoverageOnHover={false}
           zoomToBoundsOnClick={false}
+          removeOutsideVisibleBounds={false}
           eventHandlers={{ clusterclick: handleClusterClick }}
         >
-          {events
-            .filter(e => isValidCoord(e.venues?.latitude) && isValidCoord(e.venues?.longitude))
-            .map((event) => (
-              <EventMarker
-                key={event.id}
-                event={event}
-                onLongPress={handleLongPress}
-                isHovered={event.id === hoveredEventId}
-                mode={mode}
-              />
-            ))}
+          {validEvents.map((event) => (
+            <EventMarker
+              key={event.id}
+              event={event}
+              onLongPress={handleLongPress}
+              isHovered={event.id === hoveredEventId}
+              mode={mode}
+            />
+          ))}
         </MarkerClusterGroup>
       </MapContainer>
 
