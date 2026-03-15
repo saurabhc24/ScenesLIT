@@ -82,7 +82,7 @@ export default function ClusterPanel({ events, onClose, onEventClick }) {
           {events.map((event) => {
             const venue = event.venues
             const price = formatPrice(event.price_min, event.price_max, event.currency)
-            const date = formatDate(event.start_datetime)
+            const date = formatDate(event.start_time)
             return (
               <button
                 key={event.id}

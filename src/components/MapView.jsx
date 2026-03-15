@@ -219,7 +219,7 @@ const EventMarker = memo(function EventMarker({ event, onLongPress, isHovered, m
  * Mobile: fits bounds to show all events on first load.
  * Also renders the user location dot and "My location" button.
  */
-function MapControls({ userLocation, showBtn, setShowBtn }) {
+function MapControls({ userLocation, showBtn, setShowBtn, onMapMove }) {
   const map = useMap()
   const initialFit = useRef(false)
 
@@ -232,12 +232,14 @@ function MapControls({ userLocation, showBtn, setShowBtn }) {
   }, [userLocation]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useMapEvents({
+    movestart() {
+      if (onMapMove) onMapMove()
+    },
     moveend() {
       const c = map.getCenter()
       if (validLoc) {
         setShowBtn(distanceDeg([c.lat, c.lng], [userLocation.lat, userLocation.lng]) > LOCATION_THRESHOLD)
       }
-
     },
   })
 
@@ -303,6 +305,10 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
     setClusterEvents(clusterEvts)
   }, [events])
 
+  const handleMapMove = useCallback(() => {
+    setClusterEvents([])
+  }, [])
+
   const validEvents = useMemo(
     () => events.filter(e => isValidCoord(e.venues?.latitude) && isValidCoord(e.venues?.longitude)),
     [events]
@@ -346,6 +352,7 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
           userLocation={userLocation}
           showBtn={showLocationBtn}
           setShowBtn={setShowLocationBtn}
+          onMapMove={handleMapMove}
         />
 
         <MarkerClusterGroup
@@ -380,7 +387,6 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
           events={clusterEvents}
           onClose={() => setClusterEvents([])}
           onEventClick={(event) => {
-            setClusterEvents([])
             setPopupEvent(event)
           }}
         />
