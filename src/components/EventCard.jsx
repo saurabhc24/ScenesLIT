@@ -98,7 +98,7 @@ function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMous
                   <path strokeLinecap="round" strokeLinejoin="round"
                     d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span className="line-clamp-2" style={{ fontSize: 12, fontFamily: "'Cabin', sans-serif", color: 'white', lineHeight: 1.3 }}>
+                <span className="truncate" style={{ fontSize: 12, fontFamily: "'Cabin', sans-serif", color: 'white' }}>
                   {venue.name}
                 </span>
               </div>
@@ -217,7 +217,7 @@ function BookMyShowCard({ event, venue, price, date, onClick, onMouseEnter, onMo
                   <path strokeLinecap="round" strokeLinejoin="round"
                     d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span className="line-clamp-2" style={{ fontSize: 12, fontFamily: "'Cabin', sans-serif", color: 'white', lineHeight: 1.3 }}>
+                <span className="truncate" style={{ fontSize: 12, fontFamily: "'Cabin', sans-serif", color: 'white' }}>
                   {venue.name}
                 </span>
               </div>
