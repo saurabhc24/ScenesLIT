@@ -120,6 +120,7 @@ function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMous
             }}
           />
         </div>
+        </div>
       </div>
     </button>
   )
