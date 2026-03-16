@@ -70,7 +70,8 @@ function createEventIconHovered(imageUrl) {
 }
 
 /** Cluster icon: up to 9 cards in a stepped/overlapping grid + count pill.
- *  4 tiles → 2×2; 5 tiles → 3+2 with bottom row centred; else 3-col grid. */
+ *  4 tiles → 2×2; 5 tiles → 3+2 with bottom row centred; else 3-col grid.
+ *  Hover: each row lifts upward in sequence, bottom row first. */
 function createClusterIcon(cluster) {
   const markers = cluster.getAllChildMarkers()
   const count = markers.length
@@ -85,6 +86,7 @@ function createClusterIcon(cluster) {
   const rows = Math.ceil(thumbs.length / COLS)
   const gridW = (COLS - 1) * STEP + CARD
   const gridH = (rows - 1) * STEP + CARD + Math.max(...COL_ARC.slice(0, COLS))
+  const maxRow = rows - 1
 
   const cards = thumbs
     .map((m, i) => {
@@ -97,22 +99,28 @@ function createClusterIcon(cluster) {
       // 5 tiles: centre-align the 2-tile bottom row
       if (thumbs.length === 5 && row === 1) {
         const posInRow = i - COLS
-        const rowSpan = STEP + CARD // (2-1)*STEP + CARD
+        const rowSpan = STEP + CARD
         const startX = (gridW - rowSpan) / 2
         x = startX + posInRow * STEP
         y = row * STEP + 4
         rot = posInRow === 0 ? -3 : 3
       }
 
+      // Stagger delay: bottom row = 0ms, rows above get +70ms each
+      const delayMs = (maxRow - row) * 70
+
       const url = m.options.eventImageUrl
       const inner = url
         ? `<img src="${url}" style="width:${CARD}px;height:${CARD}px;object-fit:cover;" />`
         : `<div style="width:${CARD}px;height:${CARD}px;background:#e0e7ff;"></div>`
-      return `<div style="
+      return `<div class="clst-card" style="
         position:absolute;left:${x}px;top:${y}px;z-index:${i + 1};
         width:${CARD}px;height:${CARD}px;border-radius:7px;
         border:2.5px solid #fff;box-shadow:0 2px 7px rgba(0,0,0,0.22);
-        overflow:hidden;transform:rotate(${rot}deg);transform-origin:center bottom;
+        overflow:hidden;transform-origin:center bottom;
+        --r:${rot}deg;--delay:${delayMs}ms;
+        transform:rotate(var(--r));
+        transition:transform 0.22s ease var(--delay);
       ">${inner}</div>`
     })
     .join('')
@@ -125,7 +133,7 @@ function createClusterIcon(cluster) {
     iconSize: [iconW, iconH],
     iconAnchor: [iconW / 2, iconH],
     html: `
-      <div style="display:flex;flex-direction:column;align-items:center;gap:5px;">
+      <div class="clst-wrap" style="display:flex;flex-direction:column;align-items:center;gap:5px;">
         <div style="position:relative;width:${gridW}px;height:${gridH}px;">${cards}</div>
         <div style="background:#fff;color:#374151;font-size:11px;font-weight:600;
           padding:3px 10px;border-radius:999px;box-shadow:0 1px 5px rgba(0,0,0,0.15);
@@ -330,6 +338,9 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
           0%   { transform: scale(1);   opacity: 0.7; }
           70%  { transform: scale(2.2); opacity: 0; }
           100% { transform: scale(1);   opacity: 0; }
+        }
+        .clst-wrap:hover .clst-card {
+          transform: rotate(var(--r)) translateY(-7px);
         }
       `}</style>
 

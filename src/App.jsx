@@ -48,12 +48,12 @@ export default function App() {
     <div className="flex flex-col h-[100dvh] overflow-hidden bg-white dark:bg-gray-900 transition-colors">
 
       {/* Desktop: navbar */}
-      <div className="hidden md:block flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
+      <div className="hidden md:block flex-shrink-0 bg-white dark:bg-gray-900">
         <Navbar searchTerm={searchTerm} onSearchChange={setSearchTerm} darkMode={darkMode} onToggleDark={toggleDark} />
       </div>
 
       {/* Desktop layout */}
-      <div className="hidden md:flex flex-1 overflow-hidden gap-6 px-6 pt-6 pb-0">
+      <div className="hidden md:flex flex-1 overflow-hidden gap-6 px-6 pt-2.5 pb-0">
         <div className="w-96 xl:w-[460px] flex-shrink-0 overflow-hidden">
           <SidebarPanel
             events={events}
