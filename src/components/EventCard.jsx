@@ -24,19 +24,13 @@ function formatDate(timestamp) {
 
 /* ── District card: two-section horizontal card with shared blurred bg ── */
 function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMouseLeave }) {
-  const blurBg = event.image_url ? (
-    <>
-      <img
-        src={event.image_url}
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-        style={{ filter: 'blur(15px)', transform: 'scale(1.5)' }}
-      />
-      <div className="absolute inset-0 bg-black/10 pointer-events-none" />
-    </>
-  ) : (
-    <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 pointer-events-none" />
+  const ticketBg = (
+    <img
+      src="/logos/district-ticket-bg.png"
+      alt=""
+      aria-hidden="true"
+      className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+    />
   )
 
   return (
@@ -53,7 +47,7 @@ function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMous
         className="relative overflow-hidden flex-shrink-0 flex items-center justify-center"
         style={{ width: 120, borderRadius: 20, padding: 12 }}
       >
-        {blurBg}
+        {ticketBg}
         <div className="relative z-10 w-full h-full">
           {event.image_url ? (
             <img
@@ -74,9 +68,9 @@ function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMous
       {/* Right section: info + logo */}
       <div
         className="relative overflow-hidden flex-1 flex items-center justify-between"
-        style={{ borderRadius: 20, padding: 16 }}
+        style={{ borderRadius: 20, padding: '12px 8px 12px 14px' }}
       >
-        {blurBg}
+        {ticketBg}
 
         {/* Text column */}
         <div className="relative z-10 flex-1 flex flex-col min-w-0 self-stretch justify-center" style={{ gap: 10 }}>
@@ -118,7 +112,7 @@ function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMous
         </div>
 
         {/* District logo, rotated -90deg */}
-        <div className="relative z-10 flex-shrink-0 flex items-center self-stretch justify-center" style={{ marginLeft: 8 }}>
+        <div className="relative z-10 flex-shrink-0 flex items-center self-stretch justify-center" style={{ marginLeft: 2 }}>
           <img
             src="/logos/district-font-dark.png"
             alt="District"
