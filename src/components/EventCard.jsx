@@ -22,102 +22,113 @@ function formatDate(timestamp) {
   }) + '  ·  ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
 }
 
-/* ── District card: horizontal, blurred image bg, white text ── */
+/* ── District card: two-section horizontal card with shared blurred bg ── */
 function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMouseLeave }) {
+  const blurBg = event.image_url ? (
+    <>
+      <img
+        src={event.image_url}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        style={{ filter: 'blur(15px)', transform: 'scale(1.5)' }}
+      />
+      <div className="absolute inset-0 bg-black/10 pointer-events-none" />
+    </>
+  ) : (
+    <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 pointer-events-none" />
+  )
+
   return (
     <button
       type="button"
-      className="relative overflow-hidden w-full text-left cursor-pointer transition-all duration-200 focus-visible:outline-none"
-      style={{ borderRadius: 20 }}
+      className="w-full text-left cursor-pointer transition-all duration-200 focus-visible:outline-none flex"
+      style={{ height: 146 }}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      {/* Blurred event image as background */}
-      {event.image_url && (
-        <img
-          src={event.image_url}
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-          style={{ filter: 'blur(15px)', transform: 'scale(1.3)' }}
-        />
-      )}
-      <div className="absolute inset-0 bg-black/10 pointer-events-none" />
-
-      {/* Content row */}
-      <div className="relative z-10 flex" style={{ minHeight: 134 }}>
-        {/* Left: square event image */}
-        <div className="flex-shrink-0 flex items-center" style={{ padding: 12 }}>
+      {/* Left section: event image */}
+      <div
+        className="relative overflow-hidden flex-shrink-0 flex items-center justify-center"
+        style={{ width: 120, borderRadius: 20, padding: 12 }}
+      >
+        {blurBg}
+        <div className="relative z-10 w-full h-full">
           {event.image_url ? (
             <img
               src={event.image_url}
               alt={event.title}
-              className="object-cover"
-              style={{ width: 110, height: 110, borderRadius: 8 }}
+              className="w-full h-full object-cover"
+              style={{ borderRadius: 8 }}
               loading="lazy"
             />
           ) : (
-            <div className="flex items-center justify-center bg-white/20" style={{ width: 110, height: 110, borderRadius: 8 }}>
+            <div className="w-full h-full flex items-center justify-center bg-white/20" style={{ borderRadius: 8 }}>
               <span className="text-3xl">🎭</span>
             </div>
           )}
         </div>
+      </div>
 
-        {/* Right: info + logo */}
-        <div className="flex-1 flex justify-between items-center overflow-hidden" style={{ padding: '12px 12px 12px 0' }}>
-          {/* Text column */}
-          <div className="flex-1 flex flex-col min-w-0" style={{ gap: 8 }}>
-            <h3 className="line-clamp-2" style={{ fontSize: 16, fontWeight: 600, color: 'white', lineHeight: 1.3 }}>
-              {event.title}
-            </h3>
+      {/* Right section: info + logo */}
+      <div
+        className="relative overflow-hidden flex-1 flex items-center justify-between"
+        style={{ borderRadius: 20, padding: 16 }}
+      >
+        {blurBg}
 
-            <div className="flex flex-col" style={{ gap: 4 }}>
-              {venue?.name && (
-                <div className="flex items-center" style={{ gap: 6 }}>
-                  <svg className="flex-shrink-0" style={{ width: 14, height: 14 }} fill="none" stroke="white" strokeWidth={1.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round"
-                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round"
-                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <span className="truncate" style={{ fontSize: 12, fontFamily: "'Cabin', sans-serif", color: 'white' }}>
-                    {venue.name}
-                  </span>
-                </div>
-              )}
+        {/* Text column */}
+        <div className="relative z-10 flex-1 flex flex-col min-w-0 self-stretch justify-center" style={{ gap: 10 }}>
+          <h3 className="line-clamp-2" style={{ fontSize: 16, fontWeight: 600, color: 'white', lineHeight: 1.3 }}>
+            {event.title}
+          </h3>
 
-              {date && (
-                <div className="flex items-center" style={{ gap: 6 }}>
-                  <svg className="flex-shrink-0" style={{ width: 14, height: 14 }} fill="none" stroke="white" strokeWidth={1.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round"
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <span style={{ fontSize: 12, fontFamily: "'Cabin', sans-serif", color: 'white' }}>
-                    {date}
-                  </span>
-                </div>
-              )}
+          <div className="flex flex-col" style={{ gap: 4 }}>
+            {venue?.name && (
+              <div className="flex items-center" style={{ gap: 8 }}>
+                <svg className="flex-shrink-0" style={{ width: 15, height: 15 }} fill="none" stroke="white" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round"
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round"
+                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span className="truncate" style={{ fontSize: 12, fontFamily: "'Cabin', sans-serif", color: 'white' }}>
+                  {venue.name}
+                </span>
+              </div>
+            )}
 
-              <span style={{ fontSize: 15, fontFamily: "'Poppins', sans-serif", fontWeight: 900, color: 'white', marginTop: 2 }}>
-                {price}
-              </span>
-            </div>
+            {date && (
+              <div className="flex items-center" style={{ gap: 8 }}>
+                <svg className="flex-shrink-0" style={{ width: 15, height: 15 }} fill="none" stroke="white" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span style={{ fontSize: 12, fontFamily: "'Cabin', sans-serif", color: 'white' }}>
+                  {date}
+                </span>
+              </div>
+            )}
+
+            <span style={{ fontSize: 16, fontFamily: "'Poppins', sans-serif", fontWeight: 900, color: 'white', marginTop: 2 }}>
+              {price}
+            </span>
           </div>
+        </div>
 
-          {/* District logo, rotated -90deg */}
-          <div className="flex-shrink-0 flex items-center" style={{ marginLeft: 8 }}>
-            <img
-              src="/logos/district-font-dark.png"
-              alt="District"
-              style={{
-                width: 48,
-                height: 'auto',
-                transform: 'rotate(-90deg)',
-                transformOrigin: 'center center',
-              }}
-            />
-          </div>
+        {/* District logo, rotated -90deg */}
+        <div className="relative z-10 flex-shrink-0 flex items-center self-stretch justify-center" style={{ marginLeft: 8 }}>
+          <img
+            src="/logos/district-font-dark.png"
+            alt="District"
+            style={{
+              width: 57,
+              height: 'auto',
+              transform: 'rotate(-90deg)',
+              transformOrigin: 'center center',
+            }}
+          />
         </div>
       </div>
     </button>
