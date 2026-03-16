@@ -91,14 +91,14 @@ function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMous
 
           <div className="flex flex-col" style={{ gap: 4 }}>
             {venue?.name && (
-              <div className="flex items-start" style={{ gap: 8 }}>
-                <svg className="flex-shrink-0" style={{ width: 15, height: 15, marginTop: 1 }} fill="none" stroke="white" strokeWidth={1.5} viewBox="0 0 24 24">
+              <div className="flex items-center min-w-0" style={{ gap: 8 }}>
+                <svg className="flex-shrink-0" style={{ width: 15, height: 15 }} fill="none" stroke="white" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round"
                     d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round"
                     d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span className="truncate" style={{ fontSize: 12, fontFamily: "'Cabin', sans-serif", color: 'white' }}>
+                <span className="truncate min-w-0" style={{ fontSize: 12, fontFamily: "'Cabin', sans-serif", color: 'white' }}>
                   {venue.name}
                 </span>
               </div>
@@ -210,14 +210,14 @@ function BookMyShowCard({ event, venue, price, date, onClick, onMouseEnter, onMo
 
           <div className="flex flex-col" style={{ gap: 4 }}>
             {venue?.name && (
-              <div className="flex items-start" style={{ gap: 8 }}>
-                <svg className="flex-shrink-0" style={{ width: 15, height: 15, marginTop: 1 }} fill="none" stroke="white" strokeWidth={1.5} viewBox="0 0 24 24">
+              <div className="flex items-center min-w-0" style={{ gap: 8 }}>
+                <svg className="flex-shrink-0" style={{ width: 15, height: 15 }} fill="none" stroke="white" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round"
                     d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round"
                     d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span className="truncate" style={{ fontSize: 12, fontFamily: "'Cabin', sans-serif", color: 'white' }}>
+                <span className="truncate min-w-0" style={{ fontSize: 12, fontFamily: "'Cabin', sans-serif", color: 'white' }}>
                   {venue.name}
                 </span>
               </div>
