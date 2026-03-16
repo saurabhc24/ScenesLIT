@@ -22,7 +22,9 @@ function formatDate(timestamp) {
   }) + '  ·  ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
 }
 
-/* ── District card: SVG mask background with two-section layout ── */
+/* ── District card: CSS-masked background with two-section layout ── */
+const DISTRICT_MASK = `url("data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 453 146"><path d="M126 0H20C8.95 0 0 8.95 0 20v106c0 11.05 8.95 20 20 20h106c11.05 0 20-8.95 20-20V20c0-11.05-8.95-20-20-20z" fill="white"/><path d="M433 0H166c-11.05 0-20 8.95-20 20v106c0 11.05 8.95 20 20 20h267c11.05 0 20-8.95 20-20V20c0-11.05-8.95-20-20-20z" fill="white"/></svg>')}")`
+
 function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMouseLeave }) {
   return (
     <button
@@ -33,13 +35,26 @@ function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMous
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      {/* SVG background with mask + gradient */}
-      <img
-        src="/logos/District-bg-mask.svg"
-        alt=""
+      {/* Background image with two-section rounded mask */}
+      <div
+        className="absolute inset-0 pointer-events-none"
         aria-hidden="true"
-        className="absolute inset-0 w-full h-full pointer-events-none"
-      />
+        style={{
+          WebkitMaskImage: DISTRICT_MASK,
+          maskImage: DISTRICT_MASK,
+          WebkitMaskSize: '100% 100%',
+          maskSize: '100% 100%',
+          WebkitMaskRepeat: 'no-repeat',
+          maskRepeat: 'no-repeat',
+        }}
+      >
+        <img
+          src="/logos/district-ticket-bg.png"
+          alt=""
+          className="w-full h-full object-cover"
+          style={{ filter: 'blur(12px)', transform: 'scale(1.08)' }}
+        />
+      </div>
 
       {/* Content overlay */}
       <div className="relative z-10 flex w-full h-full">
