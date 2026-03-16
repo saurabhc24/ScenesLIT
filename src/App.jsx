@@ -102,7 +102,7 @@ export default function App() {
 
       {/* Desktop layout */}
       <div className="hidden md:flex flex-1 overflow-hidden gap-6 px-6 pt-6 pb-0">
-        <div className="w-80 xl:w-96 flex-shrink-0 overflow-hidden">
+        <div className="flex-shrink-0 overflow-hidden" style={{ width: '40%' }}>
           <SidebarPanel
             events={events}
             eventsLoading={eventsLoading}
