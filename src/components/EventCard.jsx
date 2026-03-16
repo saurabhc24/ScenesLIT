@@ -194,7 +194,7 @@ function BookMyShowCard({ event, venue, price, date, onClick, onMouseEnter, onMo
         </div>
 
         {/* Right section: info + logo (logo is absolute so text never displaces it) */}
-        <div className="relative flex-1 flex items-center" style={{ padding: '12px 63px 12px 14px' }}>
+        <div className="relative flex-1 flex items-center" style={{ padding: '12px 76px 12px 14px' }}>
 
         {/* Text column */}
         <div className="relative z-10 w-full flex flex-col justify-center" style={{ gap: 10 }}>
@@ -236,12 +236,12 @@ function BookMyShowCard({ event, venue, price, date, onClick, onMouseEnter, onMo
         </div>
 
         {/* BookMyShow logo — absolutely pinned to right, never displaced by text */}
-        <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center justify-center" style={{ width: 55 }}>
+        <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center justify-center" style={{ width: 68 }}>
           <img
             src="/logos/bookmyshow-font-light.svg"
             alt="BookMyShow"
             style={{
-              width: 88,
+              width: 110,
               height: 'auto',
               transform: 'rotate(-90deg)',
               transformOrigin: 'center center',
