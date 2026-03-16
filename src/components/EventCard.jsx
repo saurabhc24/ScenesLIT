@@ -30,7 +30,7 @@ function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMous
     <button
       type="button"
       className="relative w-full text-left cursor-pointer transition-all duration-200 focus-visible:outline-none"
-      style={{ aspectRatio: '453 / 170' }}
+      style={{ aspectRatio: '453 / 146' }}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -149,7 +149,7 @@ function BookMyShowCard({ event, venue, price, date, onClick, onMouseEnter, onMo
     <button
       type="button"
       className="relative w-full text-left cursor-pointer transition-all duration-200 focus-visible:outline-none"
-      style={{ aspectRatio: '452 / 170' }}
+      style={{ aspectRatio: '452 / 146' }}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
