@@ -22,55 +22,51 @@ function formatDate(timestamp) {
   }) + '  ·  ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
 }
 
-/* ── District card: two-section horizontal card with shared blurred bg ── */
+/* ── District card: SVG mask background with two-section layout ── */
 function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMouseLeave }) {
-  const ticketBg = (
-    <img
-      src="/logos/district-ticket-bg.png"
-      alt=""
-      aria-hidden="true"
-      className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-    />
-  )
-
   return (
     <button
       type="button"
-      className="w-full text-left cursor-pointer transition-all duration-200 focus-visible:outline-none flex"
-      style={{ height: 146 }}
+      className="relative w-full text-left cursor-pointer transition-all duration-200 focus-visible:outline-none"
+      style={{ aspectRatio: '453 / 146' }}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      {/* Left section: event image */}
-      <div
-        className="relative overflow-hidden flex-shrink-0 flex items-center justify-center"
-        style={{ width: 120, borderRadius: 20, padding: 12 }}
-      >
-        {ticketBg}
-        <div className="relative z-10 w-full h-full">
-          {event.image_url ? (
-            <img
-              src={event.image_url}
-              alt={event.title}
-              className="w-full h-full object-cover"
-              style={{ borderRadius: 8 }}
-              loading="lazy"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-white/20" style={{ borderRadius: 8 }}>
-              <span className="text-3xl">🎭</span>
-            </div>
-          )}
-        </div>
-      </div>
+      {/* SVG background with mask + gradient */}
+      <img
+        src="/logos/District-bg-mask.svg"
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full pointer-events-none"
+      />
 
-      {/* Right section: info + logo */}
-      <div
-        className="relative overflow-hidden flex-1 flex items-center justify-between"
-        style={{ borderRadius: 20, padding: '12px 8px 12px 14px' }}
-      >
-        {ticketBg}
+      {/* Content overlay */}
+      <div className="relative z-10 flex w-full h-full">
+        {/* Left section: event image */}
+        <div className="flex-shrink-0 flex items-center justify-center" style={{ width: '32.2%', padding: 12 }}>
+          <div className="w-full h-full">
+            {event.image_url ? (
+              <img
+                src={event.image_url}
+                alt={event.title}
+                className="w-full h-full object-cover"
+                style={{ borderRadius: 8 }}
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-white/20" style={{ borderRadius: 8 }}>
+                <span className="text-3xl">🎭</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right section: info + logo */}
+        <div
+          className="flex-1 flex items-center justify-between"
+          style={{ padding: '12px 8px 12px 14px' }}
+        >
 
         {/* Text column */}
         <div className="relative z-10 flex-1 flex flex-col min-w-0 self-stretch justify-center" style={{ gap: 10 }}>
