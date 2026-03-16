@@ -77,28 +77,25 @@ function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMous
           </div>
         </div>
 
-        {/* Right section: info + logo */}
-        <div
-          className="flex-1 flex items-center justify-between"
-          style={{ padding: '12px 8px 12px 14px' }}
-        >
+        {/* Right section: info + logo (logo is absolute so text never displaces it) */}
+        <div className="relative flex-1 flex items-center" style={{ padding: '12px 58px 12px 14px' }}>
 
         {/* Text column */}
-        <div className="relative z-10 flex-1 flex flex-col min-w-0 self-stretch justify-center overflow-hidden" style={{ gap: 10 }}>
+        <div className="relative z-10 w-full flex flex-col justify-center" style={{ gap: 10 }}>
           <h3 className="line-clamp-2" style={{ fontSize: 16, fontWeight: 600, color: 'white', lineHeight: 1.3 }}>
             {event.title}
           </h3>
 
           <div className="flex flex-col" style={{ gap: 4 }}>
             {venue?.name && (
-              <div className="flex items-center min-w-0 overflow-hidden" style={{ gap: 8 }}>
-                <svg className="flex-shrink-0" style={{ width: 15, height: 15 }} fill="none" stroke="white" strokeWidth={1.5} viewBox="0 0 24 24">
+              <div className="flex items-start" style={{ gap: 8 }}>
+                <svg className="flex-shrink-0" style={{ width: 15, height: 15, marginTop: 1 }} fill="none" stroke="white" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round"
                     d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round"
                     d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span className="truncate min-w-0" style={{ fontSize: 12, fontFamily: "'Cabin', sans-serif", color: 'white' }}>
+                <span className="line-clamp-2" style={{ fontSize: 12, fontFamily: "'Cabin', sans-serif", color: 'white', lineHeight: 1.3 }}>
                   {venue.name}
                 </span>
               </div>
@@ -122,8 +119,8 @@ function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMous
           </div>
         </div>
 
-        {/* District logo, rotated -90deg */}
-        <div className="relative z-10 flex-shrink-0 flex items-center justify-center" style={{ width: 50, marginLeft: 2 }}>
+        {/* District logo — absolutely pinned to right, never displaced by text */}
+        <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center justify-center" style={{ width: 50 }}>
           <img
             src="/logos/district-font-dark.png"
             alt="District"
@@ -196,28 +193,25 @@ function BookMyShowCard({ event, venue, price, date, onClick, onMouseEnter, onMo
           </div>
         </div>
 
-        {/* Right section: info + logo */}
-        <div
-          className="flex-1 flex items-center justify-between"
-          style={{ padding: '12px 8px 12px 14px' }}
-        >
+        {/* Right section: info + logo (logo is absolute so text never displaces it) */}
+        <div className="relative flex-1 flex items-center" style={{ padding: '12px 63px 12px 14px' }}>
 
         {/* Text column */}
-        <div className="relative z-10 flex-1 flex flex-col min-w-0 self-stretch justify-center overflow-hidden" style={{ gap: 10 }}>
+        <div className="relative z-10 w-full flex flex-col justify-center" style={{ gap: 10 }}>
           <h3 className="line-clamp-2" style={{ fontSize: 16, fontWeight: 600, color: 'white', lineHeight: 1.3, fontFamily: "'Helvetica Compressed', 'Arial Narrow', 'Roboto Condensed', sans-serif" }}>
             {event.title}
           </h3>
 
           <div className="flex flex-col" style={{ gap: 4 }}>
             {venue?.name && (
-              <div className="flex items-center min-w-0 overflow-hidden" style={{ gap: 8 }}>
-                <svg className="flex-shrink-0" style={{ width: 15, height: 15 }} fill="none" stroke="white" strokeWidth={1.5} viewBox="0 0 24 24">
+              <div className="flex items-start" style={{ gap: 8 }}>
+                <svg className="flex-shrink-0" style={{ width: 15, height: 15, marginTop: 1 }} fill="none" stroke="white" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round"
                     d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round"
                     d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span className="truncate min-w-0" style={{ fontSize: 12, fontFamily: "'Cabin', sans-serif", color: 'white' }}>
+                <span className="line-clamp-2" style={{ fontSize: 12, fontFamily: "'Cabin', sans-serif", color: 'white', lineHeight: 1.3 }}>
                   {venue.name}
                 </span>
               </div>
@@ -241,8 +235,8 @@ function BookMyShowCard({ event, venue, price, date, onClick, onMouseEnter, onMo
           </div>
         </div>
 
-        {/* BookMyShow logo, rotated -90deg */}
-        <div className="relative z-10 flex-shrink-0 flex items-center justify-center" style={{ width: 55, marginLeft: 2 }}>
+        {/* BookMyShow logo — absolutely pinned to right, never displaced by text */}
+        <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center justify-center" style={{ width: 55 }}>
           <img
             src="/logos/bookmyshow-font-light.svg"
             alt="BookMyShow"
