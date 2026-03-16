@@ -22,18 +22,32 @@ function formatDate(timestamp) {
   }) + '  ·  ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
 }
 
-/* ── District card: horizontal card with seamless gradient bg ── */
+/* ── District card: two-section seam with continuous background ── */
 function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMouseLeave }) {
+  // SVG mask: two rounded rects with a tiny gap creating the seam
+  const maskSvg = encodeURIComponent(
+    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 288 146' preserveAspectRatio='none'>" +
+    "<rect width='119' height='146' rx='20' fill='white'/>" +
+    "<rect x='121' width='167' height='146' rx='20' fill='white'/>" +
+    "</svg>"
+  )
+  const maskStyle = {
+    WebkitMaskImage: `url("data:image/svg+xml,${maskSvg}")`,
+    maskImage: `url("data:image/svg+xml,${maskSvg}")`,
+    WebkitMaskSize: '100% 100%',
+    maskSize: '100% 100%',
+  }
+
   return (
     <button
       type="button"
-      className="relative w-full text-left cursor-pointer transition-all duration-200 focus-visible:outline-none flex overflow-hidden"
-      style={{ height: 146, borderRadius: 20 }}
+      className="relative w-full text-left cursor-pointer transition-all duration-200 focus-visible:outline-none flex"
+      style={{ height: 146, ...maskStyle }}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      {/* Seamless background spanning entire card */}
+      {/* Continuous background spanning entire card */}
       <img
         src="/logos/district-ticket-bg.png"
         alt=""
