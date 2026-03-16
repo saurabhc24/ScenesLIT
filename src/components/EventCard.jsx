@@ -30,7 +30,7 @@ function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMous
     <button
       type="button"
       className="relative w-full text-left cursor-pointer transition-all duration-200 focus-visible:outline-none"
-      style={{ aspectRatio: '453 / 190' }}
+      style={{ aspectRatio: '453 / 146' }}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -85,7 +85,7 @@ function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMous
 
         {/* Text column */}
         <div className="relative z-10 flex-1 flex flex-col min-w-0 self-stretch justify-center overflow-hidden" style={{ gap: 10 }}>
-          <h3 className="line-clamp-2" style={{ fontSize: 16, fontWeight: 600, color: 'white', lineHeight: 1.3, fontFamily: "'Helvetica Compressed', 'Arial Narrow', 'Roboto Condensed', sans-serif" }}>
+          <h3 className="line-clamp-2" style={{ fontSize: 16, fontWeight: 600, color: 'white', lineHeight: 1.3 }}>
             {event.title}
           </h3>
 
@@ -149,7 +149,7 @@ function BookMyShowCard({ event, venue, price, date, onClick, onMouseEnter, onMo
     <button
       type="button"
       className="relative w-full text-left cursor-pointer transition-all duration-200 focus-visible:outline-none"
-      style={{ aspectRatio: '452 / 190' }}
+      style={{ aspectRatio: '452 / 146' }}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
