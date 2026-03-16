@@ -30,7 +30,7 @@ function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMous
     <button
       type="button"
       className="relative w-full text-left cursor-pointer transition-all duration-200 focus-visible:outline-none"
-      style={{ aspectRatio: '453 / 146' }}
+      style={{ aspectRatio: '453 / 170' }}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -123,12 +123,12 @@ function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMous
         </div>
 
         {/* District logo, rotated -90deg */}
-        <div className="relative z-10 flex-shrink-0 flex items-center justify-center" style={{ width: 40, marginLeft: 2 }}>
+        <div className="relative z-10 flex-shrink-0 flex items-center justify-center" style={{ width: 50, marginLeft: 2 }}>
           <img
             src="/logos/district-font-dark.png"
             alt="District"
             style={{
-              width: 57,
+              width: 72,
               height: 'auto',
               transform: 'rotate(-90deg)',
               transformOrigin: 'center center',
@@ -149,7 +149,7 @@ function BookMyShowCard({ event, venue, price, date, onClick, onMouseEnter, onMo
     <button
       type="button"
       className="relative w-full text-left cursor-pointer transition-all duration-200 focus-visible:outline-none"
-      style={{ aspectRatio: '452 / 146' }}
+      style={{ aspectRatio: '452 / 170' }}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -242,12 +242,12 @@ function BookMyShowCard({ event, venue, price, date, onClick, onMouseEnter, onMo
         </div>
 
         {/* BookMyShow logo, rotated -90deg */}
-        <div className="relative z-10 flex-shrink-0 flex items-center justify-center" style={{ width: 50, marginLeft: 2 }}>
+        <div className="relative z-10 flex-shrink-0 flex items-center justify-center" style={{ width: 55, marginLeft: 2 }}>
           <img
             src="/logos/bookmyshow-font-light.svg"
             alt="BookMyShow"
             style={{
-              width: 72,
+              width: 88,
               height: 'auto',
               transform: 'rotate(-90deg)',
               transformOrigin: 'center center',

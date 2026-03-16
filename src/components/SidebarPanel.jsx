@@ -3,7 +3,7 @@ import EventCard from './EventCard'
 export default function SidebarPanel({ events, eventsLoading, onEventClick, selectedEventId, onEventHover }) {
   return (
     <div className="flex flex-col h-full rounded-[20px] overflow-hidden bg-white dark:bg-gray-800">
-      <div className="flex-1 overflow-y-auto no-scrollbar py-4 space-y-3">
+      <div className="flex-1 overflow-y-auto no-scrollbar space-y-5">
         {eventsLoading ? (
           Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="rounded-xl overflow-hidden border border-gray-100 dark:border-gray-600">

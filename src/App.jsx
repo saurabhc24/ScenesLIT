@@ -5,13 +5,11 @@ import MapView from './components/MapView'
 import EventPopup from './components/EventPopup'
 import LocationPermissionDialog from './components/LocationPermissionDialog'
 import { useEvents } from './hooks/useEvents'
-import { useCategories } from './hooks/useCategories'
 import { useGeolocation } from './hooks/useGeolocation'
 
 
 export default function App() {
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState(null)
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [selectedEventId, setSelectedEventId] = useState(null)
   const [hoveredEventId, setHoveredEventId] = useState(null)
@@ -35,9 +33,7 @@ export default function App() {
   }
 
   const { location: userLocation, showDialog, handleAllow, handleSelectCity } = useGeolocation()
-  const { categories, loading: categoriesLoading } = useCategories()
-
-  const { events, loading: eventsLoading } = useEvents({ searchTerm, categoryId: selectedCategory, lat: userLocation?.lat ?? null, lng: userLocation?.lng ?? null })
+  const { events, loading: eventsLoading } = useEvents({ searchTerm, categoryId: null, lat: userLocation?.lat ?? null, lng: userLocation?.lng ?? null })
 
   const handleEventClick = useCallback((event) => {
     setSelectedEventId(event.id)
@@ -48,56 +44,12 @@ export default function App() {
     }
   }, [])
 
-  const categoryPills = (mobile = false) => (
-    <>
-      <button
-        onClick={() => setSelectedCategory(null)}
-        aria-pressed={selectedCategory === null}
-        className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
-          selectedCategory === null
-            ? 'bg-primary text-white shadow-sm'
-            : mobile
-              ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-        }`}
-      >
-        All
-      </button>
-      {categoriesLoading ? (
-        [1, 2, 3].map(i => (
-          <div key={i} className={`flex-shrink-0 h-7 w-20 rounded-full animate-pulse ${mobile ? 'bg-gray-100' : 'bg-gray-100 dark:bg-gray-700'}`} aria-hidden="true" />
-        ))
-      ) : (
-        categories.map(cat => (
-          <button
-            key={cat.id}
-            onClick={() => setSelectedCategory(cat.id)}
-            aria-pressed={selectedCategory === cat.id}
-            className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
-              selectedCategory === cat.id
-                ? 'bg-primary text-white shadow-sm'
-                : mobile
-                  ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-            }`}
-          >
-            {cat.icon && <span className="text-sm" aria-hidden="true">{cat.icon}</span>}
-            {cat.name}
-          </button>
-        ))
-      )}
-    </>
-  )
-
   return (
     <div className="flex flex-col h-[100dvh] overflow-hidden bg-white dark:bg-gray-900 transition-colors">
 
-      {/* Desktop: unified navbar + category bar */}
+      {/* Desktop: navbar */}
       <div className="hidden md:block flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
         <Navbar searchTerm={searchTerm} onSearchChange={setSearchTerm} darkMode={darkMode} onToggleDark={toggleDark} />
-        <div className="flex items-center gap-2 px-6 py-2.5 overflow-x-auto no-scrollbar">
-          {categoryPills(false)}
-        </div>
       </div>
 
       {/* Desktop layout */}
