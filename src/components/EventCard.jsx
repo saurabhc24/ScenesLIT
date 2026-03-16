@@ -1,5 +1,5 @@
 const SOURCE_LOGOS = {
-  district: '/logos/district.png',
+  district: '/logos/district-font-dark.png',
   bookmyshow: '/logos/bookmyshow.png',
 }
 
@@ -8,8 +8,8 @@ const CURRENCY_SYMBOLS = { INR: '₹', USD: '$', EUR: '€', GBP: '£' }
 function formatPrice(priceMin, priceMax, currency) {
   const sym = CURRENCY_SYMBOLS[currency] || currency || '₹'
   if (!priceMin && !priceMax) return 'Free'
-  if (priceMin === priceMax || !priceMax) return `${sym}  ${priceMin?.toLocaleString('en-IN')}`
-  return `${sym}  ${priceMin?.toLocaleString('en-IN')}  -  ${sym}  ${priceMax?.toLocaleString('en-IN')}`
+  if (priceMin === priceMax || !priceMax) return `${sym} ${priceMin?.toLocaleString('en-IN')}`
+  return `${sym} ${priceMin?.toLocaleString('en-IN')}  –  ${sym} ${priceMax?.toLocaleString('en-IN')}`
 }
 
 function formatDate(timestamp) {
@@ -19,19 +19,117 @@ function formatDate(timestamp) {
     weekday: 'short',
     day: 'numeric',
     month: 'short',
-  }) + ' · ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+  }) + '  ·  ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
 }
 
-export default function EventCard({ event, onClick, isSelected, onMouseEnter, onMouseLeave }) {
-  const venue = event.venues
-  const price = formatPrice(event.price_min, event.price_max, event.currency)
-  const date = formatDate(event.start_time)
-  const logoSrc = SOURCE_LOGOS[event.source_platform?.toLowerCase()]
-
+/* ── District card: horizontal, blurred image bg, white text ── */
+function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMouseLeave }) {
   return (
     <button
       type="button"
-      className={`group flex flex-col w-full text-left bg-white overflow-hidden cursor-pointer transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50`}
+      className="relative overflow-hidden w-full text-left cursor-pointer transition-all duration-200 focus-visible:outline-none"
+      style={{ borderRadius: 20 }}
+      onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      {/* Blurred event image as background */}
+      {event.image_url && (
+        <img
+          src={event.image_url}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+          style={{ filter: 'blur(15px)', transform: 'scale(1.3)' }}
+        />
+      )}
+      <div className="absolute inset-0 bg-black/10 pointer-events-none" />
+
+      {/* Content row */}
+      <div className="relative z-10 flex" style={{ minHeight: 134 }}>
+        {/* Left: square event image */}
+        <div className="flex-shrink-0 flex items-center" style={{ padding: 12 }}>
+          {event.image_url ? (
+            <img
+              src={event.image_url}
+              alt={event.title}
+              className="object-cover"
+              style={{ width: 110, height: 110, borderRadius: 8 }}
+              loading="lazy"
+            />
+          ) : (
+            <div className="flex items-center justify-center bg-white/20" style={{ width: 110, height: 110, borderRadius: 8 }}>
+              <span className="text-3xl">🎭</span>
+            </div>
+          )}
+        </div>
+
+        {/* Right: info + logo */}
+        <div className="flex-1 flex justify-between items-center overflow-hidden" style={{ padding: '12px 12px 12px 0' }}>
+          {/* Text column */}
+          <div className="flex-1 flex flex-col min-w-0" style={{ gap: 8 }}>
+            <h3 className="line-clamp-2" style={{ fontSize: 16, fontWeight: 600, color: 'white', lineHeight: 1.3 }}>
+              {event.title}
+            </h3>
+
+            <div className="flex flex-col" style={{ gap: 4 }}>
+              {venue?.name && (
+                <div className="flex items-center" style={{ gap: 6 }}>
+                  <svg className="flex-shrink-0" style={{ width: 14, height: 14 }} fill="none" stroke="white" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round"
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round"
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span className="truncate" style={{ fontSize: 12, fontFamily: "'Cabin', sans-serif", color: 'white' }}>
+                    {venue.name}
+                  </span>
+                </div>
+              )}
+
+              {date && (
+                <div className="flex items-center" style={{ gap: 6 }}>
+                  <svg className="flex-shrink-0" style={{ width: 14, height: 14 }} fill="none" stroke="white" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span style={{ fontSize: 12, fontFamily: "'Cabin', sans-serif", color: 'white' }}>
+                    {date}
+                  </span>
+                </div>
+              )}
+
+              <span style={{ fontSize: 15, fontFamily: "'Poppins', sans-serif", fontWeight: 900, color: 'white', marginTop: 2 }}>
+                {price}
+              </span>
+            </div>
+          </div>
+
+          {/* District logo, rotated -90deg */}
+          <div className="flex-shrink-0 flex items-center" style={{ marginLeft: 8 }}>
+            <img
+              src="/logos/district-font-dark.png"
+              alt="District"
+              style={{
+                width: 48,
+                height: 'auto',
+                transform: 'rotate(-90deg)',
+                transformOrigin: 'center center',
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    </button>
+  )
+}
+
+/* ── Default card (BookMyShow etc): vertical white card ── */
+function DefaultCard({ event, venue, price, date, logoSrc, onClick, onMouseEnter, onMouseLeave }) {
+  return (
+    <button
+      type="button"
+      className="group flex flex-col w-full text-left bg-white overflow-hidden cursor-pointer transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
       style={{ padding: 16, borderRadius: 24, gap: 20 }}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
@@ -102,5 +200,40 @@ export default function EventCard({ event, onClick, isSelected, onMouseEnter, on
         )}
       </div>
     </button>
+  )
+}
+
+export default function EventCard({ event, onClick, isSelected, onMouseEnter, onMouseLeave }) {
+  const venue = event.venues
+  const price = formatPrice(event.price_min, event.price_max, event.currency)
+  const date = formatDate(event.start_time)
+  const isDistrict = event.source_platform?.toLowerCase() === 'district'
+
+  if (isDistrict) {
+    return (
+      <DistrictCard
+        event={event}
+        venue={venue}
+        price={price}
+        date={date}
+        onClick={onClick}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+      />
+    )
+  }
+
+  const logoSrc = SOURCE_LOGOS[event.source_platform?.toLowerCase()]
+  return (
+    <DefaultCard
+      event={event}
+      venue={venue}
+      price={price}
+      date={date}
+      logoSrc={logoSrc}
+      onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    />
   )
 }
