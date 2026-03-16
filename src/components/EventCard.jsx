@@ -22,42 +22,33 @@ function formatDate(timestamp) {
   }) + '  ·  ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
 }
 
-/* ── District card: two-section seam with continuous background ── */
+/* ── District card: two-section horizontal card with shared blurred bg ── */
 function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMouseLeave }) {
-  // SVG mask: two rounded rects with a tiny gap creating the seam
-  const maskSvg = encodeURIComponent(
-    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 288 146' preserveAspectRatio='none'>" +
-    "<rect width='119' height='146' rx='20' fill='white'/>" +
-    "<rect x='121' width='167' height='146' rx='20' fill='white'/>" +
-    "</svg>"
+  const ticketBg = (
+    <img
+      src="/logos/district-ticket-bg.png"
+      alt=""
+      aria-hidden="true"
+      className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+    />
   )
-  const maskStyle = {
-    WebkitMaskImage: `url("data:image/svg+xml,${maskSvg}")`,
-    maskImage: `url("data:image/svg+xml,${maskSvg}")`,
-    WebkitMaskSize: '100% 100%',
-    maskSize: '100% 100%',
-  }
 
   return (
     <button
       type="button"
-      className="relative w-full text-left cursor-pointer transition-all duration-200 focus-visible:outline-none flex"
-      style={{ height: 146, ...maskStyle }}
+      className="w-full text-left cursor-pointer transition-all duration-200 focus-visible:outline-none flex"
+      style={{ height: 146 }}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      {/* Continuous background spanning entire card */}
-      <img
-        src="/logos/district-ticket-bg.png"
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-      />
-
       {/* Left section: event image */}
-      <div className="relative z-10 flex-shrink-0 flex items-center justify-center" style={{ width: 120, padding: 12 }}>
-        <div className="w-full h-full">
+      <div
+        className="relative overflow-hidden flex-shrink-0 flex items-center justify-center"
+        style={{ width: 120, borderRadius: 20, padding: 12 }}
+      >
+        {ticketBg}
+        <div className="relative z-10 w-full h-full">
           {event.image_url ? (
             <img
               src={event.image_url}
@@ -76,9 +67,10 @@ function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMous
 
       {/* Right section: info + logo */}
       <div
-        className="relative z-10 flex-1 flex items-center justify-between"
-        style={{ padding: '12px 8px 12px 14px' }}
+        className="relative overflow-hidden flex-1 flex items-center justify-between"
+        style={{ borderRadius: 20, padding: '12px 8px 12px 14px' }}
       >
+        {ticketBg}
 
         {/* Text column */}
         <div className="relative z-10 flex-1 flex flex-col min-w-0 self-stretch justify-center" style={{ gap: 10 }}>
