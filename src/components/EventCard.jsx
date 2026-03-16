@@ -91,7 +91,7 @@ function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMous
 
           <div className="flex flex-col" style={{ gap: 4 }}>
             {venue?.name && (
-              <div className="flex items-center min-w-0" style={{ gap: 8 }}>
+              <div className="flex items-center min-w-0 overflow-hidden" style={{ gap: 8 }}>
                 <svg className="flex-shrink-0" style={{ width: 15, height: 15 }} fill="none" stroke="white" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round"
                     d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -210,7 +210,7 @@ function BookMyShowCard({ event, venue, price, date, onClick, onMouseEnter, onMo
 
           <div className="flex flex-col" style={{ gap: 4 }}>
             {venue?.name && (
-              <div className="flex items-center min-w-0" style={{ gap: 8 }}>
+              <div className="flex items-center min-w-0 overflow-hidden" style={{ gap: 8 }}>
                 <svg className="flex-shrink-0" style={{ width: 15, height: 15 }} fill="none" stroke="white" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round"
                     d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
