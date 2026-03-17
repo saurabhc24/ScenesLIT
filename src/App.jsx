@@ -14,6 +14,8 @@ export default function App() {
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [selectedEventId, setSelectedEventId] = useState(null)
   const [hoveredEventId, setHoveredEventId] = useState(null)
+  const [showMapOverlay, setShowMapOverlay] = useState(true)
+  const [overlayFading, setOverlayFading] = useState(false)
   const desktopMapRef = useRef(null)
   const mobileMapRef = useRef(null)
   const activeMapRef = () => window.innerWidth >= 768 ? desktopMapRef : mobileMapRef
@@ -34,6 +36,18 @@ export default function App() {
       return next
     })
   }
+
+  // Mobile map overlay: fade out when loading completes
+  useEffect(() => {
+    if (eventsLoading) {
+      setShowMapOverlay(true)
+      setOverlayFading(false)
+    } else {
+      setOverlayFading(true)
+      const t = setTimeout(() => setShowMapOverlay(false), 700)
+      return () => clearTimeout(t)
+    }
+  }, [eventsLoading])
 
   // Debounce search — only fires query 500ms after user stops typing
   useEffect(() => {
@@ -111,8 +125,11 @@ export default function App() {
           <div className="absolute inset-0 rounded-2xl overflow-hidden" style={{ border: '0.5px solid #C8C8C8' }}>
             <MapView ref={mobileMapRef} events={events} userLocation={userLocation} mode="mobile" />
           </div>
-          {eventsLoading && (
-            <div className="absolute inset-0 rounded-2xl z-10 flex items-center justify-center backdrop-blur-sm bg-white/30">
+          {showMapOverlay && (
+            <div
+              className="absolute inset-0 rounded-2xl z-10 flex items-center justify-center backdrop-blur-md bg-white/30 transition-opacity duration-700"
+              style={{ opacity: overlayFading ? 0 : 1 }}
+            >
               <p style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: 18, color: '#111', textAlign: 'center', padding: '0 32px', lineHeight: 1.4 }}>
                 We're lining up your next plans…
               </p>

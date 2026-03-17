@@ -81,7 +81,7 @@ function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMous
 
         {/* Text column */}
         <div className="relative z-10 w-full flex flex-col justify-center" style={{ gap: 10 }}>
-          <h3 className="line-clamp-2" style={{ fontSize: 16, fontWeight: 600, color: 'white', lineHeight: 1.3 }}>
+          <h3 className="line-clamp-2" style={{ fontSize: 16, fontFamily: "'Archivo Black', sans-serif", color: 'white', lineHeight: 1.3 }}>
             {event.title}
           </h3>
 
@@ -197,7 +197,7 @@ function BookMyShowCard({ event, venue, price, date, onClick, onMouseEnter, onMo
 
         {/* Text column */}
         <div className="relative z-10 w-full flex flex-col justify-center" style={{ gap: 10 }}>
-          <h3 className="line-clamp-2" style={{ fontSize: 16, fontWeight: 600, color: 'white', lineHeight: 1.3, fontFamily: "'Helvetica Compressed', 'Arial Narrow', 'Roboto Condensed', sans-serif" }}>
+          <h3 className="line-clamp-2" style={{ fontSize: 16, fontFamily: "'Archivo Black', sans-serif", color: 'white', lineHeight: 1.3 }}>
             {event.title}
           </h3>
 
