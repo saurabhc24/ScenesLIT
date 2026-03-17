@@ -35,6 +35,12 @@ export default function App() {
   const { location: userLocation, showDialog, handleAllow, handleSelectCity } = useGeolocation()
   const { events, loading: eventsLoading } = useEvents({ searchTerm, categoryId: null, lat: userLocation?.lat ?? null, lng: userLocation?.lng ?? null })
 
+  // Pan/fit map to search results whenever they change
+  useEffect(() => {
+    if (eventsLoading || !searchTerm.trim()) return
+    mapRef.current?.fitEvents(events)
+  }, [events]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleEventClick = useCallback((event) => {
     setSelectedEventId(event.id)
     setSelectedEvent(event)

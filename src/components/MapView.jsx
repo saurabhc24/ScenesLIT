@@ -286,7 +286,7 @@ function MapControls({ userLocation, showBtn, setShowBtn, onMapMove }) {
   )
 }
 
-/** Exposes flyToEvent on the mapRef */
+/** Exposes flyToEvent and fitEvents on the mapRef */
 function FlyToHelper({ mapRef }) {
   const map = useMap()
   useImperativeHandle(mapRef, () => ({
@@ -294,6 +294,16 @@ function FlyToHelper({ mapRef }) {
       if (isValidCoord(lat) && isValidCoord(lng)) {
         map.flyTo([lat, lng], 15, { duration: 1.2 })
       }
+    },
+    fitEvents(evts) {
+      const valid = (evts || []).filter(e => isValidCoord(e.venues?.latitude) && isValidCoord(e.venues?.longitude))
+      if (valid.length === 0) return
+      if (valid.length === 1) {
+        map.flyTo([valid[0].venues.latitude, valid[0].venues.longitude], 15, { duration: 1.2 })
+        return
+      }
+      const bounds = L.latLngBounds(valid.map(e => [e.venues.latitude, e.venues.longitude]))
+      map.fitBounds(bounds, { padding: [60, 60], maxZoom: 15, animate: true, duration: 1.0 })
     },
   }), [map])
   return null
