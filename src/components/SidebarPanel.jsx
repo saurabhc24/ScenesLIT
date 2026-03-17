@@ -6,12 +6,17 @@ export default function SidebarPanel({ events, eventsLoading, onEventClick, sele
       <div className="flex-1 overflow-y-auto no-scrollbar space-y-5">
         {eventsLoading ? (
           Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="rounded-xl overflow-hidden border border-gray-100 dark:border-gray-600">
-              <div className="aspect-video bg-gray-100 dark:bg-gray-700 animate-pulse" />
-              <div className="p-3 space-y-2">
-                <div className="h-4 bg-gray-100 dark:bg-gray-700 rounded animate-pulse w-3/4" />
-                <div className="h-3 bg-gray-100 dark:bg-gray-700 rounded animate-pulse w-1/2" />
-                <div className="h-3 bg-gray-100 dark:bg-gray-700 rounded animate-pulse w-1/3" />
+            <div key={i} className="w-full animate-pulse" style={{ aspectRatio: '453 / 146' }}>
+              <div className="flex h-full gap-[10px]">
+                {/* Left: image placeholder */}
+                <div className="bg-gray-200 dark:bg-gray-700 rounded-[12px] flex-shrink-0" style={{ width: '32.2%' }} />
+                {/* Right: content placeholder */}
+                <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-[12px] flex flex-col justify-center px-4" style={{ gap: 10 }}>
+                  <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded-md" style={{ width: '75%' }} />
+                  <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded-md" style={{ width: '55%' }} />
+                  <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded-md" style={{ width: '45%' }} />
+                  <div className="h-5 bg-gray-300 dark:bg-gray-600 rounded-md" style={{ width: '30%' }} />
+                </div>
               </div>
             </div>
           ))

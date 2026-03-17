@@ -107,8 +107,18 @@ export default function App() {
         </header>
 
         {/* Map — fills remaining space, rounded corners, subtle border */}
-        <div className="flex-1 min-h-0 rounded-2xl overflow-hidden" style={{ border: '0.5px solid #C8C8C8' }}>
-          <MapView ref={mobileMapRef} events={events} userLocation={userLocation} mode="mobile" />
+        <div className="flex-1 min-h-0 relative">
+          <div className="absolute inset-0 rounded-2xl overflow-hidden" style={{ border: '0.5px solid #C8C8C8' }}>
+            <MapView ref={mobileMapRef} events={events} userLocation={userLocation} mode="mobile" />
+          </div>
+          {eventsLoading && (
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-md">
+              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: '120ms' }} />
+              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: '240ms' }} />
+              <span className="text-xs font-medium text-gray-600 ml-1">Finding events…</span>
+            </div>
+          )}
         </div>
       </div>
 
