@@ -37,6 +37,15 @@ export default function App() {
     })
   }
 
+  // Debounce search — only fires query 500ms after user stops typing
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchTerm), 500)
+    return () => clearTimeout(t)
+  }, [searchTerm])
+
+  const { location: userLocation, showDialog, handleAllow, handleSelectCity } = useGeolocation()
+  const { events, loading: eventsLoading } = useEvents({ searchTerm: debouncedSearch, categoryId: null, lat: userLocation?.lat ?? null, lng: userLocation?.lng ?? null })
+
   // Mobile map overlay: fade out when loading completes
   useEffect(() => {
     if (eventsLoading) {
@@ -48,15 +57,6 @@ export default function App() {
       return () => clearTimeout(t)
     }
   }, [eventsLoading])
-
-  // Debounce search — only fires query 500ms after user stops typing
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(searchTerm), 500)
-    return () => clearTimeout(t)
-  }, [searchTerm])
-
-  const { location: userLocation, showDialog, handleAllow, handleSelectCity } = useGeolocation()
-  const { events, loading: eventsLoading } = useEvents({ searchTerm: debouncedSearch, categoryId: null, lat: userLocation?.lat ?? null, lng: userLocation?.lng ?? null })
 
   // Pan/fit map to search results whenever they change
   useEffect(() => {
