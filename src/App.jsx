@@ -13,7 +13,9 @@ export default function App() {
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [selectedEventId, setSelectedEventId] = useState(null)
   const [hoveredEventId, setHoveredEventId] = useState(null)
-  const mapRef = useRef(null)
+  const desktopMapRef = useRef(null)
+  const mobileMapRef = useRef(null)
+  const activeMapRef = () => window.innerWidth >= 768 ? desktopMapRef : mobileMapRef
 
   // Dark mode — persisted to localStorage, toggled via html.dark class
   const [darkMode, setDarkMode] = useState(() => {
@@ -38,7 +40,7 @@ export default function App() {
   // Pan/fit map to search results whenever they change
   useEffect(() => {
     if (eventsLoading || !searchTerm.trim()) return
-    mapRef.current?.fitEvents(events)
+    activeMapRef().current?.fitEvents(events)
   }, [events]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleEventClick = useCallback((event) => {
@@ -46,7 +48,7 @@ export default function App() {
     setSelectedEvent(event)
     const venue = event.venues
     if (venue?.latitude != null && venue?.longitude != null) {
-      mapRef.current?.flyToEvent(venue.latitude, venue.longitude)
+      activeMapRef().current?.flyToEvent(venue.latitude, venue.longitude)
     }
   }, [])
 
@@ -70,7 +72,7 @@ export default function App() {
           />
         </div>
         <div className="flex-1 border border-gray-200 dark:border-gray-700 rounded-[20px] overflow-hidden">
-          <MapView ref={mapRef} events={events} userLocation={userLocation} mode="desktop" hoveredEventId={hoveredEventId} />
+          <MapView ref={desktopMapRef} events={events} userLocation={userLocation} mode="desktop" hoveredEventId={hoveredEventId} />
         </div>
       </div>
 
@@ -99,7 +101,7 @@ export default function App() {
 
         {/* Map — fills remaining space, rounded corners, subtle border */}
         <div className="flex-1 min-h-0 rounded-2xl overflow-hidden" style={{ border: '0.5px solid #C8C8C8' }}>
-          <MapView ref={mapRef} events={events} userLocation={userLocation} mode="mobile" />
+          <MapView ref={mobileMapRef} events={events} userLocation={userLocation} mode="mobile" />
         </div>
       </div>
 
