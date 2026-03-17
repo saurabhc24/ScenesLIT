@@ -305,7 +305,7 @@ function FlyToHelper({ mapRef }) {
         }
         const bounds = L.latLngBounds(valid.map(e => [e.venues.latitude, e.venues.longitude]))
         if (!bounds.isValid()) return
-        map.fitBounds(bounds, { padding: [60, 60], maxZoom: 15, animate: true, duration: 1.0 })
+        map.flyToBounds(bounds, { padding: [60, 60], maxZoom: 15, duration: 1.5 })
       } catch (err) {
         console.warn('[fitEvents] skipped:', err.message)
       }

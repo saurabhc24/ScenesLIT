@@ -10,6 +10,7 @@ import { useGeolocation } from './hooks/useGeolocation'
 
 export default function App() {
   const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [selectedEventId, setSelectedEventId] = useState(null)
   const [hoveredEventId, setHoveredEventId] = useState(null)
@@ -34,8 +35,14 @@ export default function App() {
     })
   }
 
+  // Debounce search — only fires query 500ms after user stops typing
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchTerm), 500)
+    return () => clearTimeout(t)
+  }, [searchTerm])
+
   const { location: userLocation, showDialog, handleAllow, handleSelectCity } = useGeolocation()
-  const { events, loading: eventsLoading } = useEvents({ searchTerm, categoryId: null, lat: userLocation?.lat ?? null, lng: userLocation?.lng ?? null })
+  const { events, loading: eventsLoading } = useEvents({ searchTerm: debouncedSearch, categoryId: null, lat: userLocation?.lat ?? null, lng: userLocation?.lng ?? null })
 
   // Pan/fit map to search results whenever they change
   useEffect(() => {
