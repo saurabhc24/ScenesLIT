@@ -41,9 +41,13 @@ export default function EventPopup({ event, onClose }) {
   const date = formatDate(event.start_time)
 
   function handleGetTickets() {
-    if (event.source_url) {
-      window.open(event.source_url, '_blank', 'noopener,noreferrer')
-    }
+    if (!event.source_url) return
+    try {
+      const url = new URL(event.source_url)
+      if (url.protocol === 'http:' || url.protocol === 'https:') {
+        window.open(event.source_url, '_blank', 'noopener,noreferrer')
+      }
+    } catch { /* invalid URL — do nothing */ }
   }
 
   return (

@@ -39,7 +39,7 @@ export function useEvents({ searchTerm = '', categoryId = null, lat = null, lng 
         .order('start_time', { ascending: true })
 
       if (searchTerm.trim()) {
-        const term = searchTerm.trim()
+        const term = searchTerm.trim().slice(0, 100)
         query = query.or(`title.ilike.%${term}%,source_platform.ilike.%${term}%`)
       }
 

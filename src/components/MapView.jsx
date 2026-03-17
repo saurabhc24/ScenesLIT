@@ -16,6 +16,15 @@ L.Icon.Default.mergeOptions({
 const LONG_PRESS_MS = 500
 const LOCATION_THRESHOLD = 0.02 // ~2 km in degrees
 
+/** Only allow http/https image URLs before embedding in raw Leaflet HTML */
+function sanitizeImageUrl(url) {
+  if (!url) return null
+  try {
+    const { protocol } = new URL(url)
+    return protocol === 'http:' || protocol === 'https:' ? url : null
+  } catch { return null }
+}
+
 function isValidCoord(v) {
   return typeof v === 'number' && isFinite(v)
 }
@@ -28,8 +37,9 @@ function distanceDeg(a, b) {
 
 /** 50×50 white square marker with event image */
 function createEventIcon(imageUrl) {
-  const img = imageUrl
-    ? `<img src="${imageUrl}" style="width:46px;height:46px;object-fit:cover;border-radius:6px;margin:2px;display:block;" />`
+  const safe = sanitizeImageUrl(imageUrl)
+  const img = safe
+    ? `<img src="${safe}" style="width:46px;height:46px;object-fit:cover;border-radius:6px;margin:2px;display:block;" />`
     : `<div style="width:46px;height:46px;background:#fde8ea;border-radius:6px;margin:2px;display:flex;align-items:center;justify-content:center;font-size:20px;">🎭</div>`
 
   return L.divIcon({
@@ -49,8 +59,9 @@ function createEventIcon(imageUrl) {
 
 /** 64×64 highlighted marker shown when the corresponding sidebar card is hovered */
 function createEventIconHovered(imageUrl) {
-  const img = imageUrl
-    ? `<img src="${imageUrl}" style="width:58px;height:58px;object-fit:cover;border-radius:8px;margin:3px;display:block;" />`
+  const safe = sanitizeImageUrl(imageUrl)
+  const img = safe
+    ? `<img src="${safe}" style="width:58px;height:58px;object-fit:cover;border-radius:8px;margin:3px;display:block;" />`
     : `<div style="width:58px;height:58px;background:#fde8ea;border-radius:8px;margin:3px;display:flex;align-items:center;justify-content:center;font-size:24px;">🎭</div>`
 
   return L.divIcon({
@@ -109,7 +120,7 @@ function createClusterIcon(cluster) {
       // Stagger delay: bottom row = 0ms, rows above get +70ms each
       const delayMs = (maxRow - row) * 70
 
-      const url = m.options.eventImageUrl
+      const url = sanitizeImageUrl(m.options.eventImageUrl)
       const inner = url
         ? `<img src="${url}" style="width:${CARD}px;height:${CARD}px;object-fit:cover;" />`
         : `<div style="width:${CARD}px;height:${CARD}px;background:#e0e7ff;"></div>`
