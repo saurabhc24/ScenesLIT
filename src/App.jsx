@@ -130,7 +130,7 @@ export default function App() {
               className="absolute inset-0 rounded-2xl z-10 flex items-center justify-center backdrop-blur-md bg-white/30 transition-opacity duration-700"
               style={{ opacity: overlayFading ? 0 : 1 }}
             >
-              <p style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: 18, color: '#111', textAlign: 'center', padding: '0 32px', lineHeight: 1.4 }}>
+              <p style={{ fontFamily: "'Funnel Sans', sans-serif", fontWeight: 500, fontSize: 18, color: '#111', textAlign: 'center', padding: '0 32px', lineHeight: 1.4 }}>
                 We're lining up your next plans…
               </p>
             </div>
