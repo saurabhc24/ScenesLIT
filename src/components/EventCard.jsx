@@ -23,7 +23,7 @@ function formatDate(timestamp) {
 }
 
 /* ── District card: CSS-masked background with two-section layout ── */
-const DISTRICT_MASK = `url("data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 453 146"><path d="M126 0H20C8.95 0 0 8.95 0 20v106c0 11.05 8.95 20 20 20h106c11.05 0 20-8.95 20-20V20c0-11.05-8.95-20-20-20z" fill="white"/><path d="M433 0H166c-11.05 0-20 8.95-20 20v106c0 11.05 8.95 20 20 20h267c11.05 0 20-8.95 20-20V20c0-11.05-8.95-20-20-20z" fill="white"/></svg>')}")`
+const DISTRICT_MASK = `url("data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 453 146"><path d="M126 0H20C8.9543 0 0 8.9543 0 20V126C0 137.046 8.9543 146 20 146H126C137.046 146 146 137.046 146 126V20C146 8.9543 137.046 0 126 0Z" fill="white"/><path d="M431 0H164C152.954 0 144 8.9543 144 20V126C144 137.046 152.954 146 164 146H431C442.046 146 451 137.046 451 126V20C451 8.9543 442.046 0 431 0Z" fill="white"/></svg>')}")`
 
 function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMouseLeave }) {
   return (
@@ -52,7 +52,6 @@ function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMous
           src="/logos/district-ticket-bg.png"
           alt=""
           className="w-full h-full object-cover"
-          style={{ filter: 'blur(12px)', transform: 'scale(1.08)' }}
         />
       </div>
 
