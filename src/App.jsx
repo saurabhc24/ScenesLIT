@@ -112,11 +112,10 @@ export default function App() {
             <MapView ref={mobileMapRef} events={events} userLocation={userLocation} mode="mobile" />
           </div>
           {eventsLoading && (
-            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-md">
-              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: '0ms' }} />
-              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: '120ms' }} />
-              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: '240ms' }} />
-              <span className="text-xs font-medium text-gray-600 ml-1">Finding events…</span>
+            <div className="absolute inset-0 rounded-2xl z-10 flex items-center justify-center backdrop-blur-sm bg-white/30">
+              <p style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: 18, color: '#111', textAlign: 'center', padding: '0 32px', lineHeight: 1.4 }}>
+                We're lining up your next plans…
+              </p>
             </div>
           )}
         </div>
