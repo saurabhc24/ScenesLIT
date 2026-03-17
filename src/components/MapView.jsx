@@ -296,14 +296,19 @@ function FlyToHelper({ mapRef }) {
       }
     },
     fitEvents(evts) {
-      const valid = (evts || []).filter(e => isValidCoord(e.venues?.latitude) && isValidCoord(e.venues?.longitude))
-      if (valid.length === 0) return
-      if (valid.length === 1) {
-        map.flyTo([valid[0].venues.latitude, valid[0].venues.longitude], 15, { duration: 1.2 })
-        return
+      try {
+        const valid = (evts || []).filter(e => isValidCoord(e.venues?.latitude) && isValidCoord(e.venues?.longitude))
+        if (valid.length === 0) return
+        if (valid.length === 1) {
+          map.flyTo([valid[0].venues.latitude, valid[0].venues.longitude], 15, { duration: 1.2 })
+          return
+        }
+        const bounds = L.latLngBounds(valid.map(e => [e.venues.latitude, e.venues.longitude]))
+        if (!bounds.isValid()) return
+        map.fitBounds(bounds, { padding: [60, 60], maxZoom: 15, animate: true, duration: 1.0 })
+      } catch (err) {
+        console.warn('[fitEvents] skipped:', err.message)
       }
-      const bounds = L.latLngBounds(valid.map(e => [e.venues.latitude, e.venues.longitude]))
-      map.fitBounds(bounds, { padding: [60, 60], maxZoom: 15, animate: true, duration: 1.0 })
     },
   }), [map])
   return null
