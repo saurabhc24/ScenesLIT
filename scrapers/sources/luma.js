@@ -1,10 +1,11 @@
 /**
- * Luma (lu.ma) — __NEXT_DATA__ scraper
+ * Luma (luma.com, formerly lu.ma) — __NEXT_DATA__ scraper
  *
- * Step 1: Playwright loads the city discovery page, scrolls, collects event URLs
- * Step 2: Each event page is visited to extract __NEXT_DATA__ (Next.js SSR state)
- * Step 3: Venue coordinates from geo_latitude/geo_longitude or geo_address_info.lat_lng
- *         Falls back to city centre if Luma doesn't expose coordinates (e.g. online events skipped)
+ * Step 1: Playwright loads the city page (lu.ma/<city> redirects to luma.com/<city>),
+ *         scrolls, and collects event slug URLs matching the 6–12 char alphanumeric pattern
+ * Step 2: Each event page is visited to extract __NEXT_DATA__.props.pageProps.initialData.data
+ * Step 3: Venue city is known from the city page; lat/lng falls back to city centre
+ *         (Luma event pages expose city/address text but not lat/lng coordinates)
  */
 
 import { chromium } from 'playwright'
@@ -31,6 +32,13 @@ const CITY_CENTERS = {
   Goa:       { lat: 15.2993, lng: 74.1240 },
 }
 
+// Known non-event single-segment paths on luma.com
+const EXCLUDED_SLUGS = new Set([
+  'discover', 'signin', 'login', 'signup', 'pricing', 'about',
+  'blog', 'create', 'ios', 'android', 'map', 'people', 'calendar',
+  'help', 'terms', 'privacy', 'jobs', 'press',
+])
+
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 const CONCURRENT_TABS = 4
 
@@ -46,75 +54,58 @@ async function getNextData(page, url) {
 }
 
 // Map __NEXT_DATA__ from a Luma event page to our DB shape
+// Correct path: props.pageProps.initialData.data
 function mapNextData(nextData, city) {
   try {
-    const props = nextData?.props?.pageProps
-    // Luma page structure varies — try both common shapes
-    const event = props?.event ?? props?.initialData?.event ?? props?.data?.event
-    if (!event?.name) return null
+    const data = nextData?.props?.pageProps?.initialData?.data
+    if (!data || !data.event?.name) return null
 
-    // Skip purely online events (no physical location)
-    if (event.virtual_info?.has_virtual_info && !event.geo_latitude && !event.geo_address_info?.lat_lng) {
-      return null
-    }
+    const event = data.event
 
-    // Coordinates: direct fields first, then geo_address_info.lat_lng string
-    let lat = event.geo_latitude ? parseFloat(event.geo_latitude) : null
-    let lng = event.geo_longitude ? parseFloat(event.geo_longitude) : null
-
-    if ((!lat || !lng) && event.geo_address_info?.lat_lng) {
-      const [latStr, lngStr] = String(event.geo_address_info.lat_lng).split(',')
-      lat = parseFloat(latStr)
-      lng = parseFloat(lngStr)
-    }
-
-    // Fall back to city centre (same approach as BookMyShow)
+    // Use city centre for coordinates (Luma doesn't expose lat/lng in page data)
     const center = CITY_CENTERS[city]
-    if ((!lat || !lng || isNaN(lat) || isNaN(lng)) && center) {
-      lat = center.lat
-      lng = center.lng
-    }
-
-    if (!lat || !lng || isNaN(lat) || isNaN(lng)) return null
+    if (!center) return null
 
     const geoInfo = event.geo_address_info
     const venueName = (
-      geoInfo?.full_address?.split(',')[0]?.trim() ||
-      event.geo_address_json?.address ||
+      geoInfo?.address?.split(',')[0]?.trim() ||
+      geoInfo?.city ||
       'Unknown Venue'
     )
-    const venueAddress = geoInfo?.full_address || ''
+    const venueAddress = [geoInfo?.address, geoInfo?.region, geoInfo?.country]
+      .filter(Boolean).join(', ')
 
-    // Ticket pricing (Luma stores price in cents)
-    const ticketInfo = event.ticket_info ?? props?.ticketInfo
+    // Ticket pricing — format: { price, is_free, max_price, currency_info }
+    const ticketInfo = data.ticket_info
     let priceMin = null
     let priceMax = null
-    if (ticketInfo?.is_free === false) {
-      priceMin = ticketInfo.min_ticket_price?.cents != null
-        ? ticketInfo.min_ticket_price.cents / 100 : null
-      priceMax = ticketInfo.max_ticket_price?.cents != null
-        ? ticketInfo.max_ticket_price.cents / 100 : null
+    if (ticketInfo?.is_free === true) {
+      priceMin = 0
+      priceMax = 0
+    } else if (ticketInfo?.price != null) {
+      priceMin = ticketInfo.price
+      priceMax = ticketInfo.max_price ?? ticketInfo.price
     }
-    const currency = ticketInfo?.min_ticket_price?.currency?.toUpperCase() ?? 'INR'
+    const currency = ticketInfo?.currency_info?.currency?.toUpperCase() ?? 'INR'
 
-    const slug = event.url || event.slug
-    const eventUrl = slug ? `https://lu.ma/${slug}` : ''
-    const externalId = `luma_${event.api_id ?? event.id ?? slug}`
+    const slug = event.url
+    const eventUrl = slug ? `https://luma.com/${slug}` : ''
+    const externalId = `luma_${event.api_id ?? slug}`
 
     return {
       venue: {
         name: venueName,
         address: venueAddress,
         city,
-        latitude: lat,
-        longitude: lng,
+        latitude: center.lat,
+        longitude: center.lng,
       },
       event: {
         title: event.name,
         description: event.description?.trim() || null,
         category_name: 'Events',
         city,
-        start_time: event.start_at ?? null,
+        start_time: event.start_at ?? data.start_at ?? null,
         end_time: event.end_at ?? null,
         price_min: priceMin,
         price_max: priceMax,
@@ -143,6 +134,7 @@ export async function scrapeLuma(city) {
     const context = await browser.newContext({ userAgent: UA })
 
     // Step 1: load city discovery page and collect event URLs
+    // lu.ma/<city> redirects to luma.com/<city>
     const listPage = await context.newPage()
     await listPage.goto(`https://lu.ma/${slug}`, {
       waitUntil: 'domcontentloaded',
@@ -156,24 +148,23 @@ export async function scrapeLuma(city) {
       await listPage.waitForTimeout(1500)
     }
 
-    // Collect event links — exclude known non-event paths
-    const NON_EVENT = ['/discover', '/sign-in', '/pricing', '/blog', '/about', '/calendar', '/people']
-    const eventUrls = await listPage.$$eval('a[href]', (els, nonEvent) => {
+    // Collect event links — Luma event slugs are 6–12 char lowercase alphanumeric
+    const eventUrls = await listPage.$$eval('a[href]', (els, excluded) => {
       const seen = new Set()
       return els.map(el => el.href).filter(href => {
         try {
           const url = new URL(href)
-          if (url.hostname !== 'lu.ma') return false
-          const path = url.pathname
-          if (nonEvent.some(p => path.startsWith(p))) return false
-          // Event slugs are a single path segment: /slug
-          if (path.split('/').filter(Boolean).length !== 1) return false
-          if (seen.has(href)) return false
-          seen.add(href)
+          if (!['lu.ma', 'luma.com'].includes(url.hostname)) return false
+          const seg = url.pathname.split('/').filter(Boolean)
+          if (seg.length !== 1) return false
+          if (excluded.includes(seg[0])) return false
+          if (!/^[a-z0-9]{6,12}$/.test(seg[0])) return false
+          if (seen.has(seg[0])) return false
+          seen.add(seg[0])
           return true
         } catch { return false }
       })
-    }, NON_EVENT)
+    }, [...EXCLUDED_SLUGS])
     await listPage.close()
 
     if (eventUrls.length === 0) return []
