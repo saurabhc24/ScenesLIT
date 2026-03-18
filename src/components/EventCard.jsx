@@ -403,6 +403,7 @@ export default function EventCard({ event, onClick, isSelected, onMouseEnter, on
   }
 
   if (platform === 'luma') {
+    console.log('[EventCard] rendering LumaCard for:', event.title)
     return (
       <LumaCard
         event={event}
