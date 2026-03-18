@@ -253,8 +253,8 @@ function BookMyShowCard({ event, venue, price, date, onClick, onMouseEnter, onMo
   )
 }
 
-/* ── Luma card: gradient background with same two-section mask ── */
-const LUMA_MASK = DISTRICT_MASK
+/* ── Luma card: luma-ticket-bg.png with two-section mask ── */
+const LUMA_MASK = `url("data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 453 146"><rect x="0" y="0" width="146" height="146" rx="20" fill="white"/><rect x="146" y="0" width="307" height="146" rx="20" fill="white"/></svg>')}")`
 
 function LumaCard({ event, venue, price, date, onClick, onMouseEnter, onMouseLeave }) {
   return (
@@ -266,7 +266,7 @@ function LumaCard({ event, venue, price, date, onClick, onMouseEnter, onMouseLea
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      {/* Gradient background with two-section rounded mask */}
+      {/* Background image with two-section rounded mask */}
       <div
         className="absolute inset-0 pointer-events-none"
         aria-hidden="true"
@@ -277,9 +277,14 @@ function LumaCard({ event, venue, price, date, onClick, onMouseEnter, onMouseLea
           maskSize: '100% 100%',
           WebkitMaskRepeat: 'no-repeat',
           maskRepeat: 'no-repeat',
-          background: 'linear-gradient(135deg, #1e1152 0%, #3b1fa8 45%, #6d28d9 100%)',
         }}
-      />
+      >
+        <img
+          src="/logos/luma-ticket-bg.png"
+          alt=""
+          className="w-full h-full object-cover"
+        />
+      </div>
 
       {/* Content overlay */}
       <div className="relative z-10 flex w-full h-full">
@@ -344,21 +349,18 @@ function LumaCard({ event, venue, price, date, onClick, onMouseEnter, onMouseLea
             </div>
           </div>
 
-          {/* Luma logo — "lu.ma" text pinned to right */}
+          {/* Luma logo — absolutely pinned to right, never displaced by text */}
           <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center justify-center" style={{ width: 50 }}>
-            <span
+            <img
+              src="/logos/luma-font.svg"
+              alt="Luma"
               style={{
-                fontFamily: "'Archivo Black', sans-serif",
-                fontSize: 15,
-                color: 'rgba(255,255,255,0.85)',
-                letterSpacing: '0.03em',
+                width: 80,
+                height: 'auto',
                 transform: 'rotate(-90deg)',
                 transformOrigin: 'center center',
-                whiteSpace: 'nowrap',
               }}
-            >
-              lu.ma
-            </span>
+            />
           </div>
         </div>
       </div>
