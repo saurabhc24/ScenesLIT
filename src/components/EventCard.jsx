@@ -254,7 +254,7 @@ function BookMyShowCard({ event, venue, price, date, onClick, onMouseEnter, onMo
 }
 
 /* ── Luma card: luma-ticket-bg.png with two-section mask ── */
-const LUMA_MASK = `url("data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 453 146"><rect x="0" y="0" width="146" height="146" rx="20" fill="white"/><rect x="146" y="0" width="307" height="146" rx="20" fill="white"/></svg>')}")`
+const LUMA_MASK = DISTRICT_MASK
 
 function LumaCard({ event, venue, price, date, onClick, onMouseEnter, onMouseLeave }) {
   return (
@@ -283,6 +283,7 @@ function LumaCard({ event, venue, price, date, onClick, onMouseEnter, onMouseLea
           src="/logos/luma-ticket-bg.png"
           alt=""
           className="w-full h-full object-cover"
+          style={{ filter: 'blur(8px)', transform: 'scale(1.08)' }}
         />
       </div>
 
