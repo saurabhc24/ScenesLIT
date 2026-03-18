@@ -1,5 +1,6 @@
 import { scrapeDistrict } from './sources/district.js'
 import { scrapeBookMyShow } from './sources/bookmyshow.js'
+import { scrapeLuma } from './sources/luma.js'
 import { ensureCategory, upsertVenue, upsertEvent, cleanupPastEvents, deduplicateEvents } from './lib/db.js'
 
 // Configure cities via env or default to major Indian cities
@@ -11,6 +12,7 @@ const CITIES = (
 const SOURCES = [
   { name: 'District', fn: scrapeDistrict },
   { name: 'BookMyShow', fn: scrapeBookMyShow },
+  { name: 'Luma', fn: scrapeLuma },
 ]
 
 // Only keep events within 2 months from now
