@@ -130,8 +130,6 @@ function createClusterIcon(cluster) {
         border:2.5px solid #fff;box-shadow:0 2px 7px rgba(0,0,0,0.22);
         overflow:hidden;transform-origin:center bottom;
         --r:${rot}deg;--delay:${delayMs}ms;
-        transform:rotate(var(--r));
-        transition:transform 0.22s ease var(--delay);
       ">${inner}</div>`
     })
     .join('')
@@ -364,6 +362,10 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
           0%   { transform: scale(1);   opacity: 0.7; }
           70%  { transform: scale(2.2); opacity: 0; }
           100% { transform: scale(1);   opacity: 0; }
+        }
+        .clst-card {
+          transform: rotate(var(--r));
+          transition: transform 0.22s ease var(--delay);
         }
         .clst-wrap:hover .clst-card {
           transform: rotate(var(--r)) translateY(-10px);
