@@ -366,7 +366,7 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
           100% { transform: scale(1);   opacity: 0; }
         }
         .clst-wrap:hover .clst-card {
-          transform: rotate(var(--r)) translateY(-7px);
+          transform: rotate(var(--r)) translateY(-10px);
         }
       `}</style>
 
