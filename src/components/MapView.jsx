@@ -39,7 +39,7 @@ function distanceDeg(a, b) {
 function createEventIcon(imageUrl) {
   const safe = sanitizeImageUrl(imageUrl)
   const img = safe
-    ? `<img src="${safe}" style="width:46px;height:46px;object-fit:cover;border-radius:6px;margin:2px;display:block;" />`
+    ? `<img src="${safe}" decoding="async" loading="lazy" style="width:46px;height:46px;object-fit:cover;border-radius:6px;margin:2px;display:block;" />`
     : `<div style="width:46px;height:46px;background:#fde8ea;border-radius:6px;margin:2px;display:flex;align-items:center;justify-content:center;font-size:20px;">🎭</div>`
 
   return L.divIcon({
@@ -61,7 +61,7 @@ function createEventIcon(imageUrl) {
 function createEventIconHovered(imageUrl) {
   const safe = sanitizeImageUrl(imageUrl)
   const img = safe
-    ? `<img src="${safe}" style="width:58px;height:58px;object-fit:cover;border-radius:8px;margin:3px;display:block;" />`
+    ? `<img src="${safe}" decoding="async" style="width:58px;height:58px;object-fit:cover;border-radius:8px;margin:3px;display:block;" />`
     : `<div style="width:58px;height:58px;background:#fde8ea;border-radius:8px;margin:3px;display:flex;align-items:center;justify-content:center;font-size:24px;">🎭</div>`
 
   return L.divIcon({
@@ -122,7 +122,7 @@ function createClusterIcon(cluster) {
 
       const url = sanitizeImageUrl(m.options.eventImageUrl)
       const inner = url
-        ? `<img src="${url}" style="width:${CARD}px;height:${CARD}px;object-fit:cover;" />`
+        ? `<img src="${url}" decoding="async" loading="lazy" style="width:${CARD}px;height:${CARD}px;object-fit:cover;" />`
         : `<div style="width:${CARD}px;height:${CARD}px;background:#e0e7ff;"></div>`
       return `<div class="clst-card" style="
         position:absolute;left:${x}px;top:${y}px;z-index:${i + 1};
