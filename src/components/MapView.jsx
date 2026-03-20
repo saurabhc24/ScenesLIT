@@ -239,13 +239,17 @@ const EventMarker = memo(function EventMarker({ event, onLongPress, isHovered, m
 function MapControls({ userLocation, showBtn, setShowBtn, onMapMove, onViewportChange }) {
   const map = useMap()
   const initialFit = useRef(false)
+  const vpTimer = useRef(null)
 
   const validLoc = isValidCoord(userLocation?.lat) && isValidCoord(userLocation?.lng)
 
-  function emitViewport() {
+  function emitViewport(delay = 0) {
     if (!onViewportChange) return
-    const b = map.getBounds()
-    onViewportChange({ swLat: b.getSouth(), swLng: b.getWest(), neLat: b.getNorth(), neLng: b.getEast() })
+    clearTimeout(vpTimer.current)
+    vpTimer.current = setTimeout(() => {
+      const b = map.getBounds()
+      onViewportChange({ swLat: b.getSouth(), swLng: b.getWest(), neLat: b.getNorth(), neLng: b.getEast() })
+    }, delay)
   }
 
   // Emit initial viewport once map is ready
@@ -260,13 +264,13 @@ function MapControls({ userLocation, showBtn, setShowBtn, onMapMove, onViewportC
   useMapEvents({
     movestart() { if (onMapMove) onMapMove() },
     moveend() {
-      emitViewport()
+      emitViewport(350) // debounce — don't re-render markers mid-inertia
       const c = map.getCenter()
       if (validLoc) {
         setShowBtn(distanceDeg([c.lat, c.lng], [userLocation.lat, userLocation.lng]) > LOCATION_THRESHOLD)
       }
     },
-    zoomend() { emitViewport() },
+    zoomend() { emitViewport(350) },
   })
 
   return (
@@ -357,16 +361,21 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
     [events]
   )
 
-  // Viewport-filtered events — only markers visible in current map bounds
+  // Viewport-filtered events — only markers in current bounds, capped to avoid jank
+  const MAX_MARKERS = mode === 'mobile' ? 60 : 120
   const visibleEvents = useMemo(() => {
-    if (!viewport) return validEvents
-    return validEvents.filter(e => {
-      const lat = e.venues.latitude
-      const lng = e.venues.longitude
-      return lat >= viewport.swLat && lat <= viewport.neLat &&
-             lng >= viewport.swLng && lng <= viewport.neLng
-    })
-  }, [validEvents, viewport])
+    let filtered = validEvents
+    if (viewport) {
+      filtered = validEvents.filter(e => {
+        const lat = e.venues.latitude
+        const lng = e.venues.longitude
+        return lat >= viewport.swLat && lat <= viewport.neLat &&
+               lng >= viewport.swLng && lng <= viewport.neLng
+      })
+    }
+    // Cap marker count — prioritise soonest events
+    return filtered.length > MAX_MARKERS ? filtered.slice(0, MAX_MARKERS) : filtered
+  }, [validEvents, viewport, mode]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const hasValidLocation = isValidCoord(userLocation?.lat) && isValidCoord(userLocation?.lng)
   const defaultCenter = hasValidLocation
@@ -420,7 +429,7 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
         <MarkerClusterGroup
           chunkedLoading
           iconCreateFunction={createClusterIcon}
-          maxClusterRadius={60}
+          maxClusterRadius={mode === 'mobile' ? 90 : 60}
           showCoverageOnHover={false}
           zoomToBoundsOnClick={false}
           removeOutsideVisibleBounds={true}
