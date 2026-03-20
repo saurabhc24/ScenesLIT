@@ -262,8 +262,9 @@ function MapControls({ userLocation, showBtn, setShowBtn, onMapMove, onViewportC
   }, [userLocation]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useMapEvents({
-    movestart() { if (onMapMove) onMapMove() },
+    movestart() {},
     moveend() {
+      if (onMapMove) onMapMove() // clear cluster panel after pan settles
       emitViewport(350) // debounce — don't re-render markers mid-inertia
       const c = map.getCenter()
       if (validLoc) {
@@ -408,6 +409,9 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
         zoom={mode === 'desktop' ? 12 : 13}
         style={{ width: '100%', height: '100%' }}
         zoomControl={false}
+        zoomAnimation={mode !== 'mobile'}
+        markerZoomAnimation={mode !== 'mobile'}
+        preferCanvas={false}
       >
         <FlyToHelper mapRef={ref} />
 
@@ -416,6 +420,9 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
           subdomains="abcd"
           maxZoom={19}
+          updateWhenIdle={true}
+          updateWhenZooming={false}
+          keepBuffer={mode === 'mobile' ? 1 : 2}
         />
 
         <MapControls
