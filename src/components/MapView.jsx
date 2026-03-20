@@ -236,27 +236,20 @@ const EventMarker = memo(function EventMarker({ event, onLongPress, isHovered, m
  * Mobile: fits bounds to show all events on first load.
  * Also renders the user location dot and "My location" button.
  */
-function emitBounds(map, onBoundsChange) {
-  if (!onBoundsChange) return
-  const b = map.getBounds()
-  onBoundsChange({
-    swLat: b.getSouth(),
-    swLng: b.getWest(),
-    neLat: b.getNorth(),
-    neLng: b.getEast(),
-  })
-}
-
-function MapControls({ userLocation, showBtn, setShowBtn, onMapMove, onBoundsChange }) {
+function MapControls({ userLocation, showBtn, setShowBtn, onMapMove, onViewportChange }) {
   const map = useMap()
   const initialFit = useRef(false)
 
   const validLoc = isValidCoord(userLocation?.lat) && isValidCoord(userLocation?.lng)
 
-  // Emit initial bounds once map is ready
-  useEffect(() => {
-    emitBounds(map, onBoundsChange)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  function emitViewport() {
+    if (!onViewportChange) return
+    const b = map.getBounds()
+    onViewportChange({ swLat: b.getSouth(), swLng: b.getWest(), neLat: b.getNorth(), neLng: b.getEast() })
+  }
+
+  // Emit initial viewport once map is ready
+  useEffect(() => { emitViewport() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!validLoc || initialFit.current) return
@@ -265,19 +258,15 @@ function MapControls({ userLocation, showBtn, setShowBtn, onMapMove, onBoundsCha
   }, [userLocation]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useMapEvents({
-    movestart() {
-      if (onMapMove) onMapMove()
-    },
+    movestart() { if (onMapMove) onMapMove() },
     moveend() {
-      emitBounds(map, onBoundsChange)
+      emitViewport()
       const c = map.getCenter()
       if (validLoc) {
         setShowBtn(distanceDeg([c.lat, c.lng], [userLocation.lat, userLocation.lng]) > LOCATION_THRESHOLD)
       }
     },
-    zoomend() {
-      emitBounds(map, onBoundsChange)
-    },
+    zoomend() { emitViewport() },
   })
 
   return (
@@ -343,10 +332,11 @@ function FlyToHelper({ mapRef }) {
   return null
 }
 
-const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desktop', hoveredEventId = null, onBoundsChange }, ref) {
+const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desktop', hoveredEventId = null }, ref) {
   const [popupEvent, setPopupEvent] = useState(null)
   const [clusterEvents, setClusterEvents] = useState([])
   const [showLocationBtn, setShowLocationBtn] = useState(false)
+  const [viewport, setViewport] = useState(null)
 
   const handleLongPress = useCallback((event) => setPopupEvent(event), [])
 
@@ -361,10 +351,22 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
     setClusterEvents([])
   }, [])
 
+  // All events with valid coords — used for sidebar (full list, never changes on pan)
   const validEvents = useMemo(
     () => events.filter(e => isValidCoord(e.venues?.latitude) && isValidCoord(e.venues?.longitude)),
     [events]
   )
+
+  // Viewport-filtered events — only markers visible in current map bounds
+  const visibleEvents = useMemo(() => {
+    if (!viewport) return validEvents
+    return validEvents.filter(e => {
+      const lat = e.venues.latitude
+      const lng = e.venues.longitude
+      return lat >= viewport.swLat && lat <= viewport.neLat &&
+             lng >= viewport.swLng && lng <= viewport.neLng
+    })
+  }, [validEvents, viewport])
 
   const hasValidLocation = isValidCoord(userLocation?.lat) && isValidCoord(userLocation?.lng)
   const defaultCenter = hasValidLocation
@@ -412,7 +414,7 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
           showBtn={showLocationBtn}
           setShowBtn={setShowLocationBtn}
           onMapMove={handleMapMove}
-          onBoundsChange={onBoundsChange}
+          onViewportChange={setViewport}
         />
 
         <MarkerClusterGroup
@@ -424,7 +426,7 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
           removeOutsideVisibleBounds={true}
           eventHandlers={{ clusterclick: handleClusterClick }}
         >
-          {validEvents.map((event) => (
+          {visibleEvents.map((event) => (
             <EventMarker
               key={event.id}
               event={event}

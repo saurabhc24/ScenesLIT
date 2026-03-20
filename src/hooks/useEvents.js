@@ -22,8 +22,9 @@ function haversineKm(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
-// bounds: { swLat, swLng, neLat, neLng } — current map viewport
-export function useEvents({ searchTerm = '', categoryId = null, lat = null, lng = null, radiusKm = 50, bounds = null } = {}) {
+// Fetches all events for nearby cities once — never re-fetches on map pan.
+// Sidebar receives all events; MapView filters by viewport client-side.
+export function useEvents({ searchTerm = '', categoryId = null, lat = null, lng = null, radiusKm = 50 } = {}) {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -57,39 +58,22 @@ export function useEvents({ searchTerm = '', categoryId = null, lat = null, lng 
       }
 
       const { data, error } = await query
+      if (error) { setError(error.message); setLoading(false); return }
 
-      if (error) {
-        setError(error.message)
-        setLoading(false)
-        return
-      }
-
-      let result = data || []
-
-      // Client-side filter: use viewport bounds when available, else haversine radius
-      if (bounds) {
-        result = result.filter(e => {
-          const vLat = e.venues?.latitude
-          const vLng = e.venues?.longitude
-          if (vLat == null || vLng == null) return false
-          return vLat >= bounds.swLat && vLat <= bounds.neLat &&
-                 vLng >= bounds.swLng && vLng <= bounds.neLng
-        })
-      } else {
-        result = result.filter(e => {
-          const vLat = e.venues?.latitude
-          const vLng = e.venues?.longitude
-          if (vLat == null || vLng == null) return false
-          return haversineKm(lat, lng, vLat, vLng) <= radiusKm
-        })
-      }
+      // Client-side filter: keep events with valid venue coords within radius
+      const result = (data || []).filter(e => {
+        const vLat = e.venues?.latitude
+        const vLng = e.venues?.longitude
+        if (vLat == null || vLng == null) return false
+        return haversineKm(lat, lng, vLat, vLng) <= radiusKm
+      })
 
       setEvents(result)
       setLoading(false)
     }
 
     fetchEvents()
-  }, [searchTerm, categoryId, lat, lng, radiusKm, bounds])
+  }, [searchTerm, categoryId, lat, lng, radiusKm])
 
   return { events, loading, error }
 }

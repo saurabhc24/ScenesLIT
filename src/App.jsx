@@ -16,16 +16,9 @@ export default function App() {
   const [hoveredEventId, setHoveredEventId] = useState(null)
   const [showMapOverlay, setShowMapOverlay] = useState(true)
   const [overlayFading, setOverlayFading] = useState(false)
-  const [mapBounds, setMapBounds] = useState(null)
-  const boundsTimerRef = useRef(null)
   const desktopMapRef = useRef(null)
   const mobileMapRef = useRef(null)
   const activeMapRef = () => window.innerWidth >= 768 ? desktopMapRef : mobileMapRef
-
-  const handleBoundsChange = useCallback((bounds) => {
-    clearTimeout(boundsTimerRef.current)
-    boundsTimerRef.current = setTimeout(() => setMapBounds(bounds), 600)
-  }, [])
 
   // Dark mode — persisted to localStorage, toggled via html.dark class
   const [darkMode, setDarkMode] = useState(() => {
@@ -51,7 +44,7 @@ export default function App() {
   }, [searchTerm])
 
   const { location: userLocation, showDialog, handleAllow, handleSelectCity } = useGeolocation()
-  const { events, loading: eventsLoading } = useEvents({ searchTerm: debouncedSearch, categoryId: null, lat: userLocation?.lat ?? null, lng: userLocation?.lng ?? null, bounds: mapBounds })
+  const { events, loading: eventsLoading } = useEvents({ searchTerm: debouncedSearch, categoryId: null, lat: userLocation?.lat ?? null, lng: userLocation?.lng ?? null })
 
   // Mobile map overlay: fade out when loading completes
   useEffect(() => {
@@ -100,7 +93,7 @@ export default function App() {
           />
         </div>
         <div className="flex-1 border border-gray-200 dark:border-gray-700 rounded-[20px] overflow-hidden">
-          <MapView ref={desktopMapRef} events={events} userLocation={userLocation} mode="desktop" hoveredEventId={hoveredEventId} onBoundsChange={handleBoundsChange} />
+          <MapView ref={desktopMapRef} events={events} userLocation={userLocation} mode="desktop" hoveredEventId={hoveredEventId} />
         </div>
       </div>
 
@@ -130,7 +123,7 @@ export default function App() {
         {/* Map — fills remaining space, rounded corners, subtle border */}
         <div className="flex-1 min-h-0 relative">
           <div className="absolute inset-0 rounded-2xl overflow-hidden" style={{ border: '0.5px solid #C8C8C8' }}>
-            <MapView ref={mobileMapRef} events={events} userLocation={userLocation} mode="mobile" onBoundsChange={handleBoundsChange} />
+            <MapView ref={mobileMapRef} events={events} userLocation={userLocation} mode="mobile" />
           </div>
           {showMapOverlay && (
             <div
