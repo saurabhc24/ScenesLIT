@@ -225,21 +225,11 @@ const EventMarker = memo(function EventMarker({ event, onLongPress, isHovered, m
  * Mobile: fits bounds to show all events on first load.
  * Also renders the user location dot and "My location" button.
  */
-function MapControls({ userLocation, showBtn, setShowBtn, onMapMove, onViewportChange, debounceMs = 350 }) {
+function MapControls({ userLocation, showBtn, setShowBtn, onMapMove }) {
   const map = useMap()
   const initialFit = useRef(false)
-  const vpTimer = useRef(null)
 
   const validLoc = isValidCoord(userLocation?.lat) && isValidCoord(userLocation?.lng)
-
-  function emitViewport(delay = 0) {
-    if (!onViewportChange) return
-    clearTimeout(vpTimer.current)
-    vpTimer.current = setTimeout(() => {
-      const b = map.getBounds()
-      onViewportChange({ swLat: b.getSouth(), swLng: b.getWest(), neLat: b.getNorth(), neLng: b.getEast() })
-    }, delay)
-  }
 
   useEffect(() => {
     if (!validLoc || initialFit.current) return
@@ -248,16 +238,13 @@ function MapControls({ userLocation, showBtn, setShowBtn, onMapMove, onViewportC
   }, [userLocation]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useMapEvents({
-    movestart() {},
     moveend() {
-      if (onMapMove) onMapMove() // clear cluster panel after pan settles
-      emitViewport(debounceMs)
+      if (onMapMove) onMapMove()
       const c = map.getCenter()
       if (validLoc) {
         setShowBtn(distanceDeg([c.lat, c.lng], [userLocation.lat, userLocation.lng]) > LOCATION_THRESHOLD)
       }
     },
-    zoomend() { emitViewport(debounceMs) },
   })
 
   return (
@@ -327,53 +314,29 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
   const [popupEvent, setPopupEvent] = useState(null)
   const [clusterEvents, setClusterEvents] = useState([])
   const [showLocationBtn, setShowLocationBtn] = useState(false)
-  const [viewport, setViewport] = useState(null)
 
   const handleLongPress = useCallback((event) => setPopupEvent(event), [])
 
   const handleClusterClick = useCallback((e) => {
     const childMarkers = e.layer.getAllChildMarkers()
     const ids = new Set(childMarkers.map(m => m.options.eventId))
-    const clusterEvts = events.filter(ev => ids.has(ev.id))
-    setClusterEvents(clusterEvts)
+    setClusterEvents(events.filter(ev => ids.has(ev.id)))
   }, [events])
 
-  const handleMapMove = useCallback(() => {
-    setClusterEvents([])
-  }, [])
+  const handleMapMove = useCallback(() => setClusterEvents([]), [])
 
-  // All events with valid coords — used for sidebar (full list, never changes on pan)
   const validEvents = useMemo(
     () => events.filter(e => isValidCoord(e.venues?.latitude) && isValidCoord(e.venues?.longitude)),
     [events]
   )
 
-  // Viewport-filtered events — only markers in current bounds, capped to avoid jank
-  const MAX_MARKERS = mode === 'mobile' ? 60 : 120
-  const visibleEvents = useMemo(() => {
-    let filtered = validEvents
-    if (viewport) {
-      filtered = validEvents.filter(e => {
-        const lat = e.venues.latitude
-        const lng = e.venues.longitude
-        return lat >= viewport.swLat && lat <= viewport.neLat &&
-               lng >= viewport.swLng && lng <= viewport.neLng
-      })
-    }
-    // Cap marker count — prioritise soonest events
-    return filtered.length > MAX_MARKERS ? filtered.slice(0, MAX_MARKERS) : filtered
-  }, [validEvents, viewport, mode]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Stable object — prevents MarkerClusterGroup from re-registering handlers on every render
   const clusterHandlers = useMemo(
     () => ({ clusterclick: handleClusterClick }),
     [handleClusterClick]
   )
 
-  // Memoised marker elements — only rebuilt when visible set or hover state changes,
-  // not on unrelated state updates (popupEvent, clusterEvents, showLocationBtn, etc.)
   const markerElements = useMemo(
-    () => visibleEvents.map(event => (
+    () => validEvents.map(event => (
       <EventMarker
         key={event.id}
         event={event}
@@ -382,7 +345,7 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
         mode={mode}
       />
     )),
-    [visibleEvents, hoveredEventId, handleLongPress, mode]
+    [validEvents, hoveredEventId, handleLongPress, mode]
   )
 
   const hasValidLocation = isValidCoord(userLocation?.lat) && isValidCoord(userLocation?.lng)
@@ -437,8 +400,6 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
           showBtn={showLocationBtn}
           setShowBtn={setShowLocationBtn}
           onMapMove={handleMapMove}
-          onViewportChange={setViewport}
-          debounceMs={mode === 'mobile' ? 500 : 350}
         />
 
         <MarkerClusterGroup
