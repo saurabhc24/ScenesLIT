@@ -91,23 +91,37 @@ function mapSpotData(raw, city) {
 
   const { jsonLd, title, description, imageUrl, dateText, priceText, venueText, categoryText, url } = raw
 
-  let finalTitle    = title
-  let finalStart    = parseDate(dateText)
-  let finalEnd      = null
-  let finalImage    = imageUrl
-  let finalVenue    = venueText || city
-  let finalCategory = categoryText || 'Events'
-  let finalPriceMin = null
-  let finalPriceMax = null
+  let finalTitle       = title
+  let finalDescription = description?.trim() || null
+  let finalStart       = parseDate(dateText)
+  let finalEnd         = null
+  let finalImage       = Array.isArray(imageUrl) ? (imageUrl[0]?.url || imageUrl[0] || null) : imageUrl
+  let finalVenue       = venueText || city
+  let finalCategory    = categoryText || 'Events'
+  let finalPriceMin    = null
+  let finalPriceMax    = null
 
   // Prefer JSON-LD Event schema data when available
   if (jsonLd) {
-    finalTitle    = jsonLd.name          || finalTitle
-    finalStart    = jsonLd.startDate     || finalStart
-    finalEnd      = jsonLd.endDate       || null
-    finalImage    = jsonLd.image?.url    || jsonLd.image || finalImage
-    finalVenue    = jsonLd.location?.name || finalVenue
-    finalCategory = jsonLd.eventStatus   || finalCategory
+    finalTitle = jsonLd.name || finalTitle
+
+    // Description
+    if (jsonLd.description) finalDescription = jsonLd.description
+
+    finalStart = jsonLd.startDate || finalStart
+    finalEnd   = jsonLd.endDate   || null
+
+    // image may be string, array of strings, or array of ImageObject
+    const img = jsonLd.image
+    if (Array.isArray(img))      finalImage = img[0]?.url || img[0] || finalImage
+    else if (img?.url)           finalImage = img.url
+    else if (typeof img === 'string') finalImage = img
+
+    finalVenue = jsonLd.location?.name || finalVenue
+
+    // Use event type keywords for category, NOT eventStatus URL
+    const typeHint = [jsonLd.name, jsonLd.description].filter(Boolean).join(' ')
+    if (typeHint) finalCategory = typeHint // let db.js normalizeCategory handle it
 
     const offer = Array.isArray(jsonLd.offers) ? jsonLd.offers[0] : jsonLd.offers
     if (offer) {
@@ -137,7 +151,7 @@ function mapSpotData(raw, city) {
     },
     event: {
       title:            finalTitle,
-      description:      description?.trim() || null,
+      description:      finalDescription,
       category_name:    finalCategory,
       city,
       start_time:       finalStart,
@@ -147,7 +161,7 @@ function mapSpotData(raw, city) {
       currency:         'INR',
       source_platform:  'urbanaut',
       source_url:       url,
-      image_url:        finalImage || null,
+      image_url:        (typeof finalImage === 'string' ? finalImage : null),
       popularity_score: 0,
       external_id:      `urbanaut_${slug}`,
     },
