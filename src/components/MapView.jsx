@@ -175,8 +175,6 @@ const USER_LOCATION_ICON = L.divIcon({
 
 /** Individual event marker */
 const EventMarker = memo(function EventMarker({ event, onLongPress, isHovered, mode }) {
-  const longPressTimer = useRef(null)
-  const didLongPress = useRef(false)
   const venue = event.venues
 
   const icon = useMemo(
@@ -184,38 +182,21 @@ const EventMarker = memo(function EventMarker({ event, onLongPress, isHovered, m
     [isHovered, event.image_url]
   )
 
+  // Stable handler objects — only recreated when onLongPress or event changes
+  const mobileHandlers = useMemo(
+    () => ({ click: () => onLongPress(event) }),
+    [onLongPress, event]
+  )
+  const desktopHandlers = useMemo(
+    () => ({
+      click: () => onLongPress(event),
+      contextmenu: (e) => { if (e.originalEvent) e.originalEvent.preventDefault() },
+    }),
+    [onLongPress, event]
+  )
+
   if (!isValidCoord(venue?.latitude) || !isValidCoord(venue?.longitude)) return null
 
-  // Desktop only: long-press detection (mousedown/mouseup)
-  function startPress(e) {
-    if (e.originalEvent) e.originalEvent.preventDefault()
-    didLongPress.current = false
-    longPressTimer.current = setTimeout(() => {
-      didLongPress.current = true
-      onLongPress(event)
-    }, LONG_PRESS_MS)
-  }
-
-  function endPress() {
-    clearTimeout(longPressTimer.current)
-    longPressTimer.current = null
-  }
-
-  // Mobile: plain tap → EventPopup
-  if (mode === 'mobile') {
-    return (
-      <Marker
-        position={[venue.latitude, venue.longitude]}
-        icon={icon}
-        zIndexOffset={isHovered ? 500 : 0}
-        eventId={event.id}
-        eventImageUrl={event.image_url}
-        eventHandlers={{ click: () => onLongPress(event) }}
-      />
-    )
-  }
-
-  // Desktop: click → EventPopup
   return (
     <Marker
       position={[venue.latitude, venue.longitude]}
@@ -223,10 +204,7 @@ const EventMarker = memo(function EventMarker({ event, onLongPress, isHovered, m
       zIndexOffset={isHovered ? 500 : 0}
       eventId={event.id}
       eventImageUrl={event.image_url}
-      eventHandlers={{
-        click: () => onLongPress(event),
-        contextmenu: (e) => { if (e.originalEvent) e.originalEvent.preventDefault() },
-      }}
+      eventHandlers={mode === 'mobile' ? mobileHandlers : desktopHandlers}
     />
   )
 })
@@ -236,7 +214,7 @@ const EventMarker = memo(function EventMarker({ event, onLongPress, isHovered, m
  * Mobile: fits bounds to show all events on first load.
  * Also renders the user location dot and "My location" button.
  */
-function MapControls({ userLocation, showBtn, setShowBtn, onMapMove, onViewportChange }) {
+function MapControls({ userLocation, showBtn, setShowBtn, onMapMove, onViewportChange, debounceMs = 350 }) {
   const map = useMap()
   const initialFit = useRef(false)
   const vpTimer = useRef(null)
@@ -265,13 +243,13 @@ function MapControls({ userLocation, showBtn, setShowBtn, onMapMove, onViewportC
     movestart() {},
     moveend() {
       if (onMapMove) onMapMove() // clear cluster panel after pan settles
-      emitViewport(350) // debounce — don't re-render markers mid-inertia
+      emitViewport(debounceMs)
       const c = map.getCenter()
       if (validLoc) {
         setShowBtn(distanceDeg([c.lat, c.lng], [userLocation.lat, userLocation.lng]) > LOCATION_THRESHOLD)
       }
     },
-    zoomend() { emitViewport(350) },
+    zoomend() { emitViewport(debounceMs) },
   })
 
   return (
@@ -378,6 +356,27 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
     return filtered.length > MAX_MARKERS ? filtered.slice(0, MAX_MARKERS) : filtered
   }, [validEvents, viewport, mode]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Stable object — prevents MarkerClusterGroup from re-registering handlers on every render
+  const clusterHandlers = useMemo(
+    () => ({ clusterclick: handleClusterClick }),
+    [handleClusterClick]
+  )
+
+  // Memoised marker elements — only rebuilt when visible set or hover state changes,
+  // not on unrelated state updates (popupEvent, clusterEvents, showLocationBtn, etc.)
+  const markerElements = useMemo(
+    () => visibleEvents.map(event => (
+      <EventMarker
+        key={event.id}
+        event={event}
+        onLongPress={handleLongPress}
+        isHovered={event.id === hoveredEventId}
+        mode={mode}
+      />
+    )),
+    [visibleEvents, hoveredEventId, handleLongPress, mode]
+  )
+
   const hasValidLocation = isValidCoord(userLocation?.lat) && isValidCoord(userLocation?.lng)
   const defaultCenter = hasValidLocation
     ? [userLocation.lat, userLocation.lng]
@@ -431,6 +430,7 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
           setShowBtn={setShowLocationBtn}
           onMapMove={handleMapMove}
           onViewportChange={setViewport}
+          debounceMs={mode === 'mobile' ? 500 : 350}
         />
 
         <MarkerClusterGroup
@@ -440,17 +440,9 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
           showCoverageOnHover={false}
           zoomToBoundsOnClick={false}
           removeOutsideVisibleBounds={true}
-          eventHandlers={{ clusterclick: handleClusterClick }}
+          eventHandlers={clusterHandlers}
         >
-          {visibleEvents.map((event) => (
-            <EventMarker
-              key={event.id}
-              event={event}
-              onLongPress={handleLongPress}
-              isHovered={event.id === hoveredEventId}
-              mode={mode}
-            />
-          ))}
+          {markerElements}
         </MarkerClusterGroup>
       </MapContainer>
 
