@@ -408,7 +408,7 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
           maxClusterRadius={mode === 'mobile' ? 90 : 60}
           showCoverageOnHover={false}
           zoomToBoundsOnClick={false}
-          removeOutsideVisibleBounds={true}
+          removeOutsideVisibleBounds={false}
           eventHandlers={clusterHandlers}
         >
           {markerElements}
