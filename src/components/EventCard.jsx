@@ -369,6 +369,117 @@ function LumaCard({ event, venue, price, date, onClick, onMouseEnter, onMouseLea
   )
 }
 
+/* ── Urbanaut card: orange gradient background, same two-section layout ── */
+const URBANAUT_MASK = DISTRICT_MASK
+
+function UrbanautCard({ event, venue, price, date, onClick, onMouseEnter, onMouseLeave }) {
+  return (
+    <button
+      type="button"
+      className="relative w-full text-left cursor-pointer transition-all duration-200 focus-visible:outline-none"
+      style={{ aspectRatio: '453 / 146' }}
+      onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      {/* Background gradient with two-section rounded mask */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        aria-hidden="true"
+        style={{
+          WebkitMaskImage: URBANAUT_MASK,
+          maskImage: URBANAUT_MASK,
+          WebkitMaskSize: '100% 100%',
+          maskSize: '100% 100%',
+          WebkitMaskRepeat: 'no-repeat',
+          maskRepeat: 'no-repeat',
+          background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%)',
+        }}
+      />
+
+      {/* Content overlay */}
+      <div className="relative z-10 flex w-full h-full">
+        {/* Left section: event image */}
+        <div className="flex-shrink-0 flex items-center justify-center" style={{ width: '32.2%', padding: 12 }}>
+          <div className="w-full h-full">
+            {event.image_url ? (
+              <img
+                src={event.image_url}
+                alt={event.title}
+                className="w-full h-full object-cover"
+                style={{ borderRadius: 8 }}
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-white/10" style={{ borderRadius: 8 }}>
+                <span className="text-3xl">🎭</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right section: info + logo */}
+        <div className="relative flex-1 flex items-center" style={{ padding: '12px 58px 12px 14px' }}>
+
+          {/* Text column */}
+          <div className="relative z-10 w-full flex flex-col justify-center" style={{ gap: 10 }}>
+            <h3 className="line-clamp-2" style={{ fontSize: 16, fontFamily: "'Archivo Black', sans-serif", color: 'white', lineHeight: 1.3 }}>
+              {event.title}
+            </h3>
+
+            <div className="flex flex-col" style={{ gap: 4 }}>
+              {venue?.name && (
+                <div className="flex items-start" style={{ gap: 8 }}>
+                  <svg className="flex-shrink-0" style={{ width: 15, height: 15, marginTop: 1 }} fill="none" stroke="white" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round"
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round"
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span className="line-clamp-2" style={{ fontSize: 12, fontFamily: "'Cabin', sans-serif", color: 'rgba(255,255,255,0.85)', lineHeight: 1.3 }}>
+                    {venue.name}
+                  </span>
+                </div>
+              )}
+
+              {date && (
+                <div className="flex items-center" style={{ gap: 8 }}>
+                  <svg className="flex-shrink-0" style={{ width: 15, height: 15 }} fill="none" stroke="white" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span style={{ fontSize: 12, fontFamily: "'Cabin', sans-serif", color: 'rgba(255,255,255,0.85)' }}>
+                    {date}
+                  </span>
+                </div>
+              )}
+
+              <span style={{ fontSize: 16, fontFamily: "'Poppins', sans-serif", fontWeight: 900, color: 'white', marginTop: 2 }}>
+                {price}
+              </span>
+            </div>
+          </div>
+
+          {/* Urbanaut text logo — absolutely pinned to right */}
+          <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center justify-center" style={{ width: 50 }}>
+            <span style={{
+              fontSize: 11,
+              fontFamily: "'Archivo Black', sans-serif",
+              color: 'rgba(255,255,255,0.7)',
+              letterSpacing: '0.08em',
+              transform: 'rotate(-90deg)',
+              transformOrigin: 'center center',
+              whiteSpace: 'nowrap',
+            }}>
+              urbanaut
+            </span>
+          </div>
+        </div>
+      </div>
+    </button>
+  )
+}
+
 export default function EventCard({ event, onClick, isSelected, onMouseEnter, onMouseLeave }) {
   const venue = event.venues
   const price = formatPrice(event.price_min, event.price_max, event.currency)
@@ -404,9 +515,22 @@ export default function EventCard({ event, onClick, isSelected, onMouseEnter, on
   }
 
   if (platform === 'luma') {
-    console.log('[EventCard] rendering LumaCard for:', event.title)
     return (
       <LumaCard
+        event={event}
+        venue={venue}
+        price={price}
+        date={date}
+        onClick={onClick}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+      />
+    )
+  }
+
+  if (platform === 'urbanaut') {
+    return (
+      <UrbanautCard
         event={event}
         venue={venue}
         price={price}
