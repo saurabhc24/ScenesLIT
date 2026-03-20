@@ -22,7 +22,8 @@ function haversineKm(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
-export function useEvents({ searchTerm = '', categoryId = null, lat = null, lng = null, radiusKm = 50 } = {}) {
+// bounds: { swLat, swLng, neLat, neLng } — current map viewport
+export function useEvents({ searchTerm = '', categoryId = null, lat = null, lng = null, radiusKm = 50, bounds = null } = {}) {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -47,14 +48,12 @@ export function useEvents({ searchTerm = '', categoryId = null, lat = null, lng 
         query = query.eq('category_id', categoryId)
       }
 
-      // Server-side pre-filter: only fetch cities within radiusKm of center
-      if (lat != null && lng != null) {
-        const nearbyCities = CITY_CENTERS
-          .filter(c => haversineKm(lat, lng, c.lat, c.lng) <= radiusKm)
-          .map(c => c.name)
-        if (nearbyCities.length > 0) {
-          query = query.in('city', nearbyCities)
-        }
+      // Server-side pre-filter: only fetch cities within radiusKm of user center
+      const nearbyCities = CITY_CENTERS
+        .filter(c => haversineKm(lat, lng, c.lat, c.lng) <= radiusKm)
+        .map(c => c.name)
+      if (nearbyCities.length > 0) {
+        query = query.in('city', nearbyCities)
       }
 
       const { data, error } = await query
@@ -65,9 +64,18 @@ export function useEvents({ searchTerm = '', categoryId = null, lat = null, lng 
         return
       }
 
-      // Client-side precise filter: venue must be within radiusKm
       let result = data || []
-      if (lat != null && lng != null) {
+
+      // Client-side filter: use viewport bounds when available, else haversine radius
+      if (bounds) {
+        result = result.filter(e => {
+          const vLat = e.venues?.latitude
+          const vLng = e.venues?.longitude
+          if (vLat == null || vLng == null) return false
+          return vLat >= bounds.swLat && vLat <= bounds.neLat &&
+                 vLng >= bounds.swLng && vLng <= bounds.neLng
+        })
+      } else {
         result = result.filter(e => {
           const vLat = e.venues?.latitude
           const vLng = e.venues?.longitude
@@ -81,7 +89,7 @@ export function useEvents({ searchTerm = '', categoryId = null, lat = null, lng 
     }
 
     fetchEvents()
-  }, [searchTerm, categoryId, lat, lng, radiusKm])
+  }, [searchTerm, categoryId, lat, lng, radiusKm, bounds])
 
   return { events, loading, error }
 }

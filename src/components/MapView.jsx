@@ -236,11 +236,27 @@ const EventMarker = memo(function EventMarker({ event, onLongPress, isHovered, m
  * Mobile: fits bounds to show all events on first load.
  * Also renders the user location dot and "My location" button.
  */
-function MapControls({ userLocation, showBtn, setShowBtn, onMapMove }) {
+function emitBounds(map, onBoundsChange) {
+  if (!onBoundsChange) return
+  const b = map.getBounds()
+  onBoundsChange({
+    swLat: b.getSouth(),
+    swLng: b.getWest(),
+    neLat: b.getNorth(),
+    neLng: b.getEast(),
+  })
+}
+
+function MapControls({ userLocation, showBtn, setShowBtn, onMapMove, onBoundsChange }) {
   const map = useMap()
   const initialFit = useRef(false)
 
   const validLoc = isValidCoord(userLocation?.lat) && isValidCoord(userLocation?.lng)
+
+  // Emit initial bounds once map is ready
+  useEffect(() => {
+    emitBounds(map, onBoundsChange)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!validLoc || initialFit.current) return
@@ -253,10 +269,14 @@ function MapControls({ userLocation, showBtn, setShowBtn, onMapMove }) {
       if (onMapMove) onMapMove()
     },
     moveend() {
+      emitBounds(map, onBoundsChange)
       const c = map.getCenter()
       if (validLoc) {
         setShowBtn(distanceDeg([c.lat, c.lng], [userLocation.lat, userLocation.lng]) > LOCATION_THRESHOLD)
       }
+    },
+    zoomend() {
+      emitBounds(map, onBoundsChange)
     },
   })
 
@@ -323,7 +343,7 @@ function FlyToHelper({ mapRef }) {
   return null
 }
 
-const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desktop', hoveredEventId = null }, ref) {
+const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desktop', hoveredEventId = null, onBoundsChange }, ref) {
   const [popupEvent, setPopupEvent] = useState(null)
   const [clusterEvents, setClusterEvents] = useState([])
   const [showLocationBtn, setShowLocationBtn] = useState(false)
@@ -392,6 +412,7 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
           showBtn={showLocationBtn}
           setShowBtn={setShowLocationBtn}
           onMapMove={handleMapMove}
+          onBoundsChange={onBoundsChange}
         />
 
         <MarkerClusterGroup
@@ -400,7 +421,7 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
           maxClusterRadius={60}
           showCoverageOnHover={false}
           zoomToBoundsOnClick={false}
-          removeOutsideVisibleBounds={false}
+          removeOutsideVisibleBounds={true}
           eventHandlers={{ clusterclick: handleClusterClick }}
         >
           {validEvents.map((event) => (
