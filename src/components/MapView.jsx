@@ -230,9 +230,6 @@ function MapControls({ userLocation, showBtn, setShowBtn, onMapMove, onViewportC
     }, delay)
   }
 
-  // Emit initial viewport once map is ready
-  useEffect(() => { emitViewport() }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
   useEffect(() => {
     if (!validLoc || initialFit.current) return
     initialFit.current = true
