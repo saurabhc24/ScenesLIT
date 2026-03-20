@@ -1,236 +1,119 @@
 /**
- * Urbanaut (urbanaut.app) — Playwright scraper
+ * Urbanaut (urbanaut.app) — Typesense API scraper
  *
- * Step 1: Load the city page, scroll to trigger lazy-loaded cards,
- *         collect all /spot/<slug> links
- * Step 2: Visit each event page, extract JSON-LD Event schema first,
- *         fall back to og: meta tags + DOM selectors
- * Step 3: Map to DB shape; lat/lng falls back to city centre
- *         (Urbanaut doesn't expose coordinates in page data)
+ * Bypasses Playwright entirely. Queries the Typesense search API directly
+ * using the public read-only key embedded in the Angular app.
+ *
+ * Key fields from the API:
+ *   name, slug, price_starts_at, price_starts_at_currency,
+ *   start (datetime string), lat, lng, venue, address,
+ *   short_description_plain_text, medias (CDN images), categories
  */
 
-import { chromium } from 'playwright'
+const TYPESENSE_KEY = 'NSUWIvHiEDI8jvLN2GLhTfCzg3T6oYYV'
+const TYPESENSE_BASE = 'https://search-v2.urbanaut.app/collections/spot_approved/documents/search'
+const CDN_BASE = 'https://d10y46cwh6y6x1.cloudfront.net/'
 
-// Only cities Urbanaut currently covers in India
-const CITY_SLUG = {
-  Mumbai:    'mumbai',
-  Delhi:     'delhi',
-  Bengaluru: 'bengaluru',
-  Goa:       'goa',
+// City IDs from /api/v5/city/
+const CITY_ID = {
+  Mumbai:    5,
+  Delhi:     2,
+  Bengaluru: 6,
+  Goa:       10,
 }
 
-const CITY_CENTERS = {
-  Mumbai:    { lat: 18.9388, lng: 72.8354 },
-  Delhi:     { lat: 28.6139, lng: 77.2090 },
-  Bengaluru: { lat: 12.9716, lng: 77.5946 },
-  Goa:       { lat: 15.2993, lng: 74.1240 },
-}
+const PER_PAGE = 250
 
-const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-const CONCURRENT_TABS = 3
-const BASE = 'https://urbanaut.app'
-
-// Visit a single /spot/ page and return raw extracted data
-async function scrapeSpotPage(page, url) {
-  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 25000 })
-  await page.waitForTimeout(2500)
-
-  // Try JSON-LD Event schema (most reliable)
-  const jsonLd = await page.$$eval('script[type="application/ld+json"]', scripts => {
-    for (const s of scripts) {
-      try {
-        const d = JSON.parse(s.textContent)
-        if (d['@type'] === 'Event') return d
-      } catch {}
-    }
-    return null
-  }).catch(() => null)
-
-  // og: meta + DOM fallbacks
-  const meta = await page.evaluate(() => {
-    const og = (prop) => document.querySelector(`meta[property="${prop}"]`)?.getAttribute('content') || null
-    const text = (sel) => document.querySelector(sel)?.textContent?.trim() || null
-    const src = (sel) => document.querySelector(sel)?.getAttribute('src') || null
-
-    return {
-      title:       og('og:title')       || text('h1') || null,
-      description: og('og:description') || text('[class*="description"]') || null,
-      imageUrl:    og('og:image')       || src('img[class*="hero"], img[class*="cover"], img[class*="banner"]') || null,
-      dateText:    text('time, [class*="date"], [class*="time"]') || null,
-      priceText:   text('[class*="price"], [class*="rate"], [class*="cost"]') || null,
-      venueText:   text('[class*="location"], [class*="venue"], [class*="address"], address') || null,
-      categoryText:text('[class*="category"], [class*="tag"], [class*="type"]') || null,
-    }
+async function fetchPage(cityId, page, nowTs, futureTs) {
+  const params = new URLSearchParams({
+    q: '*',
+    per_page: PER_PAGE,
+    page,
+    filter_by: `city:${cityId} && start_timestamp:>${nowTs} && start_timestamp:<${futureTs}`,
+    sort_by: 'start_timestamp:asc',
   })
-
-  return { jsonLd, ...meta, url }
+  const res = await fetch(`${TYPESENSE_BASE}?${params}`, {
+    headers: {
+      'x-typesense-api-key': TYPESENSE_KEY,
+      'accept': 'application/json',
+      'referer': 'https://urbanaut.app/',
+      'clienttz': 'Asia/Kolkata',
+    },
+  })
+  if (!res.ok) throw new Error(`Typesense HTTP ${res.status}`)
+  return res.json()
 }
 
-// Parse "₹999", "₹500 - ₹2,000", "Free", "Starting from ₹299"
-function parsePrice(text) {
-  if (!text) return { priceMin: null, priceMax: null }
-  if (/free/i.test(text)) return { priceMin: 0, priceMax: 0 }
-  const nums = [...text.matchAll(/[\d,]+/g)]
-    .map(m => parseInt(m[0].replace(/,/g, ''), 10))
-    .filter(n => !isNaN(n))
-  return { priceMin: nums[0] ?? null, priceMax: nums[1] ?? nums[0] ?? null }
+function getImageUrl(medias) {
+  if (!Array.isArray(medias) || medias.length === 0) return null
+  // Prefer "Cover photo" type, fall back to first item
+  const cover = medias.find(m => m.type === 'Cover photo') || medias[0]
+  return cover?.path ? `${CDN_BASE}${cover.path}` : null
 }
 
-function parseDate(text) {
-  if (!text) return null
+function parseStart(startStr) {
+  if (!startStr) return null
+  // Format: "2026-04-04 16:30:00" — treat as IST (UTC+5:30)
   try {
-    const d = new Date(text)
-    if (!isNaN(d.getTime())) return d.toISOString()
-  } catch {}
-  return null
+    const iso = startStr.replace(' ', 'T') + '+05:30'
+    const d = new Date(iso)
+    return isNaN(d.getTime()) ? null : d.toISOString()
+  } catch { return null }
 }
 
-function mapSpotData(raw, city) {
-  const center = CITY_CENTERS[city]
-  if (!center) return null
+function mapDoc(doc, city) {
+  if (!doc.name || !doc.slug) return null
 
-  const { jsonLd, title, description, imageUrl, dateText, priceText, venueText, categoryText, url } = raw
-
-  let finalTitle       = title
-  let finalDescription = description?.trim() || null
-  let finalStart       = parseDate(dateText)
-  let finalEnd         = null
-  let finalImage       = Array.isArray(imageUrl) ? (imageUrl[0]?.url || imageUrl[0] || null) : imageUrl
-  let finalVenue       = venueText || city
-  let finalCategory    = categoryText || 'Events'
-  let finalPriceMin    = null
-  let finalPriceMax    = null
-
-  // Prefer JSON-LD Event schema data when available
-  if (jsonLd) {
-    finalTitle = jsonLd.name || finalTitle
-
-    // Description
-    if (jsonLd.description) finalDescription = jsonLd.description
-
-    finalStart = jsonLd.startDate || finalStart
-    finalEnd   = jsonLd.endDate   || null
-
-    // image may be string, array of strings, or array of ImageObject
-    const img = jsonLd.image
-    if (Array.isArray(img))      finalImage = img[0]?.url || img[0] || finalImage
-    else if (img?.url)           finalImage = img.url
-    else if (typeof img === 'string') finalImage = img
-
-    finalVenue = jsonLd.location?.name || finalVenue
-
-    // Use event type keywords for category, NOT eventStatus URL
-    const typeHint = [jsonLd.name, jsonLd.description].filter(Boolean).join(' ')
-    if (typeHint) finalCategory = typeHint // let db.js normalizeCategory handle it
-
-    const offer = Array.isArray(jsonLd.offers) ? jsonLd.offers[0] : jsonLd.offers
-    if (offer) {
-      const p = parseFloat(offer.price)
-      const h = parseFloat(offer.highPrice ?? offer.price)
-      finalPriceMin = isNaN(p) ? null : p
-      finalPriceMax = isNaN(h) ? null : h
-    }
-  } else {
-    const parsed = parsePrice(priceText)
-    finalPriceMin = parsed.priceMin
-    finalPriceMax = parsed.priceMax
-  }
-
-  if (!finalTitle) return null
-
-  const slug = url.split('/spot/')[1]?.split('/')[0]?.split('?')[0]
-  if (!slug) return null
+  const priceRaw = parseFloat(doc.price_starts_at)
+  const priceMin = isNaN(priceRaw) ? null : priceRaw
+  const currency  = doc.price_starts_at_currency || 'INR'
 
   return {
     venue: {
-      name:      finalVenue,
-      address:   finalVenue,
+      name:      doc.venue     || doc.address || city,
+      address:   doc.address   || doc.venue   || city,
       city,
-      latitude:  center.lat,
-      longitude: center.lng,
+      latitude:  parseFloat(doc.lat)  || null,
+      longitude: parseFloat(doc.lng)  || null,
     },
     event: {
-      title:            finalTitle,
-      description:      finalDescription,
-      category_name:    finalCategory,
+      title:            doc.name,
+      description:      doc.short_description_plain_text?.trim() || null,
+      category_name:    'Events',
       city,
-      start_time:       finalStart,
-      end_time:         finalEnd,
-      price_min:        finalPriceMin,
-      price_max:        finalPriceMax,
-      currency:         'INR',
+      start_time:       parseStart(doc.upcoming_session || doc.start),
+      end_time:         null,
+      price_min:        priceMin,
+      price_max:        priceMin,   // API only exposes starts_at
+      currency,
       source_platform:  'urbanaut',
-      source_url:       url,
-      image_url:        (typeof finalImage === 'string' ? finalImage : null),
-      popularity_score: 0,
-      external_id:      `urbanaut_${slug}`,
+      source_url:       `https://urbanaut.app/spot/${doc.slug}`,
+      image_url:        getImageUrl(doc.medias),
+      popularity_score: doc.display_score ? Math.round(doc.display_score) : 0,
+      external_id:      `urbanaut_${doc.slug}`,
     },
   }
 }
 
 export async function scrapeUrbanaut(city) {
-  const slug = CITY_SLUG[city]
-  if (!slug) return [] // city not covered by Urbanaut
+  const cityId = CITY_ID[city]
+  if (!cityId) return [] // city not covered by Urbanaut
 
-  const browser = await chromium.launch({ headless: true })
-  try {
-    const context = await browser.newContext({ userAgent: UA })
+  const nowTs    = Math.floor(Date.now() / 1000)
+  const futureTs = nowTs + 60 * 24 * 60 * 60 // 60 days ahead
 
-    // Step 1: load city page, scroll, collect /spot/ links
-    const listPage = await context.newPage()
-    await listPage.goto(`${BASE}/${slug}`, { waitUntil: 'domcontentloaded', timeout: 30000 })
-    await listPage.waitForTimeout(3000)
+  // First page to get total count
+  const first = await fetchPage(cityId, 1, nowTs, futureTs)
+  const total = first.found ?? 0
+  const pages = Math.ceil(total / PER_PAGE)
 
-    for (let i = 0; i < 5; i++) {
-      await listPage.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
-      await listPage.waitForTimeout(1500)
-    }
+  const docs = [...(first.hits || []).map(h => h.document)]
 
-    const spotUrls = await listPage.$$eval('a[href]', els => {
-      const seen = new Set()
-      return els
-        .map(el => el.href)
-        .filter(href => {
-          try {
-            const u = new URL(href)
-            if (!u.hostname.includes('urbanaut.app')) return false
-            if (!u.pathname.startsWith('/spot/')) return false
-            const s = u.pathname.split('/spot/')[1]?.split('/')[0]
-            if (!s || seen.has(s)) return false
-            seen.add(s)
-            return true
-          } catch { return false }
-        })
-        .map(href => {
-          const u = new URL(href)
-          return `https://urbanaut.app${u.pathname}`
-        })
-    })
-    await listPage.close()
-
-    if (spotUrls.length === 0) return []
-
-    // Step 2: visit each event page in batches
-    const results = []
-    for (let i = 0; i < spotUrls.length; i += CONCURRENT_TABS) {
-      const batch = spotUrls.slice(i, i + CONCURRENT_TABS)
-      const pages = await Promise.all(batch.map(() => context.newPage()))
-
-      const settled = await Promise.allSettled(
-        pages.map((p, idx) => scrapeSpotPage(p, batch[idx]))
-      )
-      await Promise.all(pages.map(p => p.close()))
-
-      for (const outcome of settled) {
-        if (outcome.status === 'fulfilled' && outcome.value) {
-          const mapped = mapSpotData(outcome.value, city)
-          if (mapped) results.push(mapped)
-        }
-      }
-    }
-
-    return results
-  } finally {
-    await browser.close()
+  // Fetch remaining pages if any
+  for (let p = 2; p <= pages; p++) {
+    const data = await fetchPage(cityId, p, nowTs, futureTs)
+    docs.push(...(data.hits || []).map(h => h.document))
   }
+
+  return docs.map(d => mapDoc(d, city)).filter(Boolean)
 }
