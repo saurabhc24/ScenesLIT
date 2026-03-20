@@ -382,7 +382,7 @@ function UrbanautCard({ event, venue, price, date, onClick, onMouseEnter, onMous
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      {/* Background gradient with two-section rounded mask */}
+      {/* Background image with two-section rounded mask */}
       <div
         className="absolute inset-0 pointer-events-none"
         aria-hidden="true"
@@ -393,9 +393,15 @@ function UrbanautCard({ event, venue, price, date, onClick, onMouseEnter, onMous
           maskSize: '100% 100%',
           WebkitMaskRepeat: 'no-repeat',
           maskRepeat: 'no-repeat',
-          background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%)',
         }}
-      />
+      >
+        <img
+          src="/logos/Urbanaut mobile background.png"
+          alt=""
+          className="w-full h-full object-cover"
+          style={{ filter: 'blur(8px)', transform: 'scale(1.08)' }}
+        />
+      </div>
 
       {/* Content overlay */}
       <div className="relative z-10 flex w-full h-full">
@@ -460,19 +466,18 @@ function UrbanautCard({ event, venue, price, date, onClick, onMouseEnter, onMous
             </div>
           </div>
 
-          {/* Urbanaut text logo — absolutely pinned to right */}
+          {/* Urbanaut logo — absolutely pinned to right */}
           <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center justify-center" style={{ width: 50 }}>
-            <span style={{
-              fontSize: 11,
-              fontFamily: "'Archivo Black', sans-serif",
-              color: 'rgba(255,255,255,0.7)',
-              letterSpacing: '0.08em',
-              transform: 'rotate(-90deg)',
-              transformOrigin: 'center center',
-              whiteSpace: 'nowrap',
-            }}>
-              urbanaut
-            </span>
+            <img
+              src="/logos/urbanaut-logo-light.svg"
+              alt="Urbanaut"
+              style={{
+                width: 80,
+                height: 'auto',
+                transform: 'rotate(-90deg)',
+                transformOrigin: 'center center',
+              }}
+            />
           </div>
         </div>
       </div>

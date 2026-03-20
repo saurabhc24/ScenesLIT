@@ -1,8 +1,17 @@
 import { useEffect } from 'react'
 
 const SOURCE_LOGOS = {
-  district: '/logos/district.png',
-  bookmyshow: '/logos/bookmyshow.png',
+  district:   '/logos/district-font-dark.png',
+  bookmyshow: '/logos/bookmyshow-font-light.svg',
+  luma:       '/logos/luma-font.svg',
+  urbanaut:   '/logos/urbanaut-logo-dark.svg',
+}
+
+const FALLBACK_BANNERS = {
+  district:   '/logos/District-ticket-bg-mobile.png',
+  bookmyshow: '/logos/Bookmyshow-ticket-bg-mobile.png',
+  luma:       '/logos/Luma-ticket-bg-mobile.png',
+  urbanaut:   '/logos/Urbanaut mobile background.png',
 }
 
 const CURRENCY_SYMBOLS = { INR: '₹', USD: '$', EUR: '€', GBP: '£' }
@@ -75,15 +84,22 @@ export default function EventPopup({ event, onClose }) {
         </button>
 
         {/* Banner image */}
-        <div className="w-full aspect-video bg-gray-100 md:dark:bg-gray-700 overflow-hidden">
+        <div className="w-full aspect-video bg-gray-100 overflow-hidden">
           {event.image_url ? (
             <img
               src={event.image_url}
               alt={event.title}
               className="w-full h-full object-cover"
             />
+          ) : FALLBACK_BANNERS[event.source_platform?.toLowerCase()] ? (
+            <img
+              src={FALLBACK_BANNERS[event.source_platform.toLowerCase()]}
+              alt={event.title}
+              className="w-full h-full object-cover"
+              style={{ filter: 'blur(6px)', transform: 'scale(1.06)' }}
+            />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-50 to-rose-50 md:dark:from-red-950 md:dark:to-rose-950">
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-50 to-rose-50">
               <span className="text-5xl">🎭</span>
             </div>
           )}
@@ -129,7 +145,8 @@ export default function EventPopup({ event, onClose }) {
               <img
                 src={SOURCE_LOGOS[event.source_platform.toLowerCase()]}
                 alt={event.source_platform}
-                className="w-6 h-6 rounded object-contain"
+                className="h-5 w-auto object-contain"
+                style={{ maxWidth: 80 }}
               />
             )}
           </div>
