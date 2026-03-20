@@ -25,6 +25,17 @@ function sanitizeImageUrl(url) {
   } catch { return null }
 }
 
+/**
+ * Proxy external image through wsrv.nl to resize + convert to WebP.
+ * Marker thumbnails are displayed at 46–58px, cluster tiles at 34px,
+ * so fetching 100px covers 2× retina without loading full-res images.
+ */
+function thumbUrl(url, size = 100) {
+  const safe = sanitizeImageUrl(url)
+  if (!safe) return null
+  return `https://wsrv.nl/?url=${encodeURIComponent(safe)}&w=${size}&h=${size}&fit=cover&output=webp&il`
+}
+
 function isValidCoord(v) {
   return typeof v === 'number' && isFinite(v)
 }
@@ -37,7 +48,7 @@ function distanceDeg(a, b) {
 
 /** 50×50 white square marker with event image */
 function createEventIcon(imageUrl) {
-  const safe = sanitizeImageUrl(imageUrl)
+  const safe = thumbUrl(imageUrl, 100)
   const img = safe
     ? `<img src="${safe}" decoding="async" loading="lazy" style="width:46px;height:46px;object-fit:cover;border-radius:6px;margin:2px;display:block;" />`
     : `<div style="width:46px;height:46px;background:#fde8ea;border-radius:6px;margin:2px;display:flex;align-items:center;justify-content:center;font-size:20px;">🎭</div>`
@@ -59,7 +70,7 @@ function createEventIcon(imageUrl) {
 
 /** 64×64 highlighted marker shown when the corresponding sidebar card is hovered */
 function createEventIconHovered(imageUrl) {
-  const safe = sanitizeImageUrl(imageUrl)
+  const safe = thumbUrl(imageUrl, 120)
   const img = safe
     ? `<img src="${safe}" decoding="async" style="width:58px;height:58px;object-fit:cover;border-radius:8px;margin:3px;display:block;" />`
     : `<div style="width:58px;height:58px;background:#fde8ea;border-radius:8px;margin:3px;display:flex;align-items:center;justify-content:center;font-size:24px;">🎭</div>`
@@ -120,7 +131,7 @@ function createClusterIcon(cluster) {
       // Stagger delay: bottom row = 0ms, rows above get +70ms each
       const delayMs = (maxRow - row) * 70
 
-      const url = sanitizeImageUrl(m.options.eventImageUrl)
+      const url = thumbUrl(m.options.eventImageUrl, 70)
       const inner = url
         ? `<img src="${url}" decoding="async" loading="lazy" style="width:${CARD}px;height:${CARD}px;object-fit:cover;" />`
         : `<div style="width:${CARD}px;height:${CARD}px;background:#e0e7ff;"></div>`
