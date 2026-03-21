@@ -65,11 +65,28 @@ export default function EventPopup({ event, onClose }) {
       style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(0,0,0,0.45)' }}
       onClick={onClose}
     >
+      <style>{`
+        @media (max-width: 767px) {
+          @keyframes sl-slide-in {
+            from { transform: translateY(80px); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+          }
+          @keyframes sl-flip-360 {
+            from { transform: perspective(900px) rotateY(0deg); }
+            to   { transform: perspective(900px) rotateY(360deg); }
+          }
+          .sl-popup-card {
+            animation:
+              sl-slide-in  0.38s ease-out         both,
+              sl-flip-360  0.55s ease-in-out 0.38s both;
+          }
+        }
+      `}</style>
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="popup-event-title"
-        className="relative bg-white md:dark:bg-gray-800 rounded-2xl overflow-hidden shadow-2xl w-full max-w-sm"
+        className="sl-popup-card relative bg-white md:dark:bg-gray-800 rounded-2xl overflow-hidden shadow-2xl w-full max-w-sm"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
