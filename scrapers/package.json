@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "scrape": "node --env-file=.env index.js",
-    "maintenance": "node --env-file=.env maintenance.js"
+    "maintenance": "node --env-file=.env maintenance.js",
+    "fix-bms-times": "node --env-file=.env fix-bms-times.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",
