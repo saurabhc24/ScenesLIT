@@ -101,9 +101,8 @@ export default function App() {
       <div className="flex md:hidden flex-col flex-1 overflow-hidden bg-white pt-4 px-4 gap-2">
         {/* Mobile header: Logo + Search */}
         <header className="flex items-center gap-3 flex-shrink-0">
-          <div className="flex items-center gap-0.5 px-3 py-2 select-none flex-shrink-0">
-            <span className="text-sm font-black tracking-tight text-gray-900">Scenes</span>
-            <span className="text-sm font-black tracking-tight text-primary">LIT</span>
+          <div className="flex items-center px-3 py-2 select-none flex-shrink-0">
+            <img src="/logos/Website_logo.svg" alt="ScenesLIT" className="h-7 w-auto" />
           </div>
           <div className="flex-1 relative">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

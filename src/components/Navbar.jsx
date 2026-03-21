@@ -2,9 +2,8 @@ export default function Navbar({ searchTerm, onSearchChange, darkMode, onToggleD
   return (
     <header className="flex items-center justify-between px-6 py-4">
       {/* Logo */}
-      <div className="flex items-center gap-1.5 select-none" aria-label="ScenesLIT">
-        <span className="text-xl font-black tracking-tight text-gray-900 dark:text-white">Scenes</span>
-        <span className="text-xl font-black tracking-tight text-primary">LIT</span>
+      <div className="flex items-center select-none" aria-label="ScenesLIT">
+        <img src="/logos/Website_logo.svg" alt="ScenesLIT" className="h-8 w-auto" />
       </div>
 
       {/* Search */}
