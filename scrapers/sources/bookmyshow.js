@@ -48,34 +48,67 @@ const CITY_CENTERS = {
   Indore:     { lat: 22.7196, lng: 75.8577 },
 }
 
-// Decode the first text overlay from a BMS image URL
-// Image URL encodes date as: l-text,ie-{base64} → e.g. "Thu, 19 Mar"
-function extractDateFromImgUrl(imgUrl) {
-  const match = imgUrl.match(/l-text,ie-([A-Za-z0-9+/_%]+)/)
-  if (!match) return null
-  try {
-    return Buffer.from(decodeURIComponent(match[1]), 'base64').toString('utf8')
-  } catch { return null }
+// Decode all text overlays from a BMS image URL.
+// BMS encodes multiple text layers as ie-{base64} — typically date then time.
+// e.g. ie-VGh1LCAxOSBNYXI%3D → "Thu, 19 Mar", ie-Nzo0NSBQTQ%3D%3D → "7:45 PM"
+function extractTextsFromImgUrl(imgUrl) {
+  const results = []
+  const regex = /ie-([A-Za-z0-9+/_%]+)/g
+  let match
+  while ((match = regex.exec(imgUrl)) !== null) {
+    try {
+      const decoded = Buffer.from(decodeURIComponent(match[1]), 'base64').toString('utf8')
+      if (decoded) results.push(decoded)
+    } catch { /* skip */ }
+  }
+  return results
 }
 
-// Parse "Thu, 19 Mar" or "19 Mar onwards" → ISO date string
-function parseDate(dateText) {
-  if (!dateText) return null
-  // Strip day name prefix: "Thu, 19 Mar" → "19 Mar"
-  const cleaned = dateText
-    .replace(/^[A-Za-z]{2,4},\s*/, '')
-    .replace(/\s*(onwards|onward|onward).*/i, '')
-    .trim()
-  if (!cleaned) return null
-  try {
-    const year = new Date().getFullYear()
-    let d = new Date(`${cleaned} ${year}`)
-    if (isNaN(d.getTime())) return null
-    // If the parsed date is more than 2 days in the past, it's next year
-    if (d < new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)) {
-      d = new Date(`${cleaned} ${year + 1}`)
+// Parse all decoded BMS text overlays into an ISO datetime string (IST = +05:30).
+// Recognises date texts ("Thu, 19 Mar", "19 Mar onwards") and
+// time texts ("7:45 PM", "7 PM", "10:30 AM") and combines them.
+function parseDateTime(texts) {
+  if (!texts.length) return null
+
+  let dateText = null
+  let timeText = null
+
+  for (const t of texts) {
+    if (/\d{1,2}(:\d{2})?\s*(AM|PM)/i.test(t)) {
+      timeText = t.trim()
+    } else if (/\d{1,2}\s+[A-Za-z]{3}/.test(t)) {
+      dateText = t.trim()
     }
-    return d.toISOString()
+  }
+
+  if (!dateText) return null
+
+  // "Thu, 19 Mar" → "19 Mar" → reorder to "Mar 19" for reliable JS parsing
+  const stripped = dateText
+    .replace(/^[A-Za-z]{2,4},\s*/, '')
+    .replace(/\s*(onwards|onward).*/i, '')
+    .trim()
+  const parts = stripped.split(/\s+/)
+  const reordered = parts.length === 2 ? `${parts[1]} ${parts[0]}` : stripped
+
+  const year = new Date().getFullYear()
+
+  function buildDate(yr) {
+    const str = timeText
+      ? `${reordered} ${yr} ${timeText} +0530`
+      : `${reordered} ${yr} +0530`
+    const d = new Date(str)
+    return isNaN(d.getTime()) ? null : d
+  }
+
+  try {
+    let d = buildDate(year)
+    if (!d) return null
+    // If more than 2 days in the past, the event is next year
+    if (d < new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)) {
+      d = buildDate(year + 1)
+    }
+    return d ? d.toISOString() : null
   } catch { return null }
 }
 
@@ -110,7 +143,7 @@ function mapCard(card, city) {
   const { min: priceMin, max: priceMax } = parsePrice(cardText(card, 3))
 
   const imgUrl = card.image?.url || null
-  const startTime = parseDate(extractDateFromImgUrl(imgUrl || ''))
+  const startTime = parseDateTime(extractTextsFromImgUrl(imgUrl || ''))
   const center = CITY_CENTERS[city]
 
   return {
