@@ -102,7 +102,7 @@ export default function App() {
         {/* Mobile header: Logo + Search */}
         <header className="flex items-center gap-3 flex-shrink-0">
           <div className="flex items-center px-3 py-2 select-none flex-shrink-0">
-            <img src="/logos/Website_logo.svg" alt="ScenesLIT" className="h-7 w-auto" />
+            <img src="/logos/Website_logo_desktop.svg" alt="ScenesLIT" className="h-7 w-auto" />
           </div>
           <div className="flex-1 relative">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
