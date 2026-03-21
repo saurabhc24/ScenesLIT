@@ -54,9 +54,7 @@ function parseDateTime(texts) {
   const year = new Date().getFullYear()
 
   function buildDate(yr) {
-    const str = timeText
-      ? `${reordered} ${yr} ${timeText} +0530`
-      : `${reordered} ${yr} +0530`
+    const str = `${reordered} ${yr} ${timeText ?? '00:00:00'} +0530`
     const d = new Date(str)
     return isNaN(d.getTime()) ? null : d
   }
