@@ -9,8 +9,13 @@ const CITY_CENTERS = [
   { name: 'Chennai',   lat: 13.0827, lng: 80.2707 },
   { name: 'Pune',      lat: 18.5204, lng: 73.8567 },
   { name: 'Kolkata',   lat: 22.5726, lng: 88.3639 },
-  { name: 'Ahmedabad', lat: 23.0225, lng: 72.5714 },
-  { name: 'Goa',       lat: 15.2993, lng: 74.1240 },
+  { name: 'Ahmedabad',  lat: 23.0225, lng: 72.5714 },
+  { name: 'Goa',        lat: 15.2993, lng: 74.1240 },
+  { name: 'Jaipur',     lat: 26.9124, lng: 75.7873 },
+  { name: 'Kochi',      lat:  9.9312, lng: 76.2673 },
+  { name: 'Chandigarh', lat: 30.7333, lng: 76.7794 },
+  { name: 'Lucknow',    lat: 26.8467, lng: 80.9462 },
+  { name: 'Indore',     lat: 22.7196, lng: 75.8577 },
 ]
 
 function haversineKm(lat1, lng1, lat2, lng2) {

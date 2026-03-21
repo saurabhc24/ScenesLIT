@@ -18,8 +18,13 @@ const CITY_SEARCH = {
   Chennai: 'Chennai, Tamil Nadu',
   Pune: 'Pune, Maharashtra',
   Kolkata: 'Kolkata, West Bengal',
-  Ahmedabad: 'Ahmedabad, Gujarat',
-  Goa: 'Goa, India',
+  Ahmedabad:  'Ahmedabad, Gujarat',
+  Goa:        'Goa, India',
+  Jaipur:     'Jaipur, Rajasthan',
+  Kochi:      'Kochi, Kerala',
+  Chandigarh: 'Chandigarh, Chandigarh',
+  Lucknow:    'Lucknow, Uttar Pradesh',
+  Indore:     'Indore, Madhya Pradesh',
 }
 
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'

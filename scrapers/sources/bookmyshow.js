@@ -21,8 +21,13 @@ const CITY_SLUG = {
   Chennai:   'chennai',
   Pune:      'pune',
   Kolkata:   'kolkata',
-  Ahmedabad: 'ahmedabad',
-  Goa:       'goa',
+  Ahmedabad:  'ahmedabad',
+  Goa:        'goa',
+  Jaipur:     'jaipur',
+  Kochi:      'kochi',
+  Chandigarh: 'chandigarh',
+  Lucknow:    'lucknow',
+  Indore:     'indore',
 }
 
 // Fallback coordinates used for all BMS events (listing page has no venue lat/lng)
@@ -34,8 +39,13 @@ const CITY_CENTERS = {
   Chennai:   { lat: 13.0827, lng: 80.2707 },
   Pune:      { lat: 18.5204, lng: 73.8567 },
   Kolkata:   { lat: 22.5726, lng: 88.3639 },
-  Ahmedabad: { lat: 23.0225, lng: 72.5714 },
-  Goa:       { lat: 15.2993, lng: 74.1240 },
+  Ahmedabad:  { lat: 23.0225, lng: 72.5714 },
+  Goa:        { lat: 15.2993, lng: 74.1240 },
+  Jaipur:     { lat: 26.9124, lng: 75.7873 },
+  Kochi:      { lat:  9.9312, lng: 76.2673 },
+  Chandigarh: { lat: 30.7333, lng: 76.7794 },
+  Lucknow:    { lat: 26.8467, lng: 80.9462 },
+  Indore:     { lat: 22.7196, lng: 75.8577 },
 }
 
 // Decode the first text overlay from a BMS image URL

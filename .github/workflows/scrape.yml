@@ -83,4 +83,4 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-          CITIES: Mumbai,Delhi,Bengaluru,Hyderabad,Chennai,Pune,Kolkata
+          CITIES: Mumbai,Delhi,Bengaluru,Hyderabad,Chennai,Pune,Kolkata,Ahmedabad,Goa,Jaipur,Kochi,Chandigarh,Lucknow,Indore

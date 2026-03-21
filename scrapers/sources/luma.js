@@ -18,7 +18,12 @@ const CITY_SLUG = {
   Chennai:   'chennai',
   Pune:      'pune',
   Kolkata:   'kolkata',
-  Goa:       'goa',
+  Goa:        'goa',
+  Jaipur:     'jaipur',
+  Kochi:      'kochi',
+  Chandigarh: 'chandigarh',
+  Lucknow:    'lucknow',
+  Indore:     'indore',
 }
 
 const CITY_CENTERS = {
@@ -29,7 +34,12 @@ const CITY_CENTERS = {
   Chennai:   { lat: 13.0827, lng: 80.2707 },
   Pune:      { lat: 18.5204, lng: 73.8567 },
   Kolkata:   { lat: 22.5726, lng: 88.3639 },
-  Goa:       { lat: 15.2993, lng: 74.1240 },
+  Goa:        { lat: 15.2993, lng: 74.1240 },
+  Jaipur:     { lat: 26.9124, lng: 75.7873 },
+  Kochi:      { lat:  9.9312, lng: 76.2673 },
+  Chandigarh: { lat: 30.7333, lng: 76.7794 },
+  Lucknow:    { lat: 26.8467, lng: 80.9462 },
+  Indore:     { lat: 22.7196, lng: 75.8577 },
 }
 
 // Known non-event single-segment paths on luma.com

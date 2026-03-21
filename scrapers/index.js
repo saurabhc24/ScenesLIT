@@ -7,7 +7,7 @@ import { ensureCategory, upsertVenue, upsertEvent, cleanupPastEvents, deduplicat
 // Configure cities via env or default to major Indian cities
 const CITIES = (
   process.env.CITIES ||
-  'Mumbai,Delhi,Bengaluru,Hyderabad,Chennai,Pune,Kolkata'
+  'Mumbai,Delhi,Bengaluru,Hyderabad,Chennai,Pune,Kolkata,Ahmedabad,Goa,Jaipur,Kochi,Chandigarh,Lucknow,Indore'
 ).split(',').map((c) => c.trim())
 
 const SOURCES = [
