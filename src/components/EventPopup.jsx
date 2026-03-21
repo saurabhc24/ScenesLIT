@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { motion } from 'framer-motion'
 
 const SOURCE_LOGOS = {
   district:   '/logos/district-font-dark.png',
@@ -59,35 +60,30 @@ export default function EventPopup({ event, onClose }) {
     } catch { /* invalid URL — do nothing */ }
   }
 
+  const isMobile = window.innerWidth < 768
+
   return (
     <div
       className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
       style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(0,0,0,0.45)' }}
       onClick={onClose}
     >
-      <style>{`
-        @media (max-width: 767px) {
-          @keyframes sl-slide-in {
-            from { transform: translateY(80px); opacity: 0; }
-            to   { transform: translateY(0);    opacity: 1; }
-          }
-          @keyframes sl-flip-360 {
-            from { transform: perspective(900px) rotateY(0deg); }
-            to   { transform: perspective(900px) rotateY(360deg); }
-          }
-          .sl-popup-card {
-            animation:
-              sl-slide-in  0.38s ease-out         both,
-              sl-flip-360  0.55s ease-in-out 0.38s both;
-          }
-        }
-      `}</style>
-      <div
+      <motion.div
         role="dialog"
         aria-modal="true"
         aria-labelledby="popup-event-title"
-        className="sl-popup-card relative bg-white md:dark:bg-gray-800 rounded-2xl overflow-hidden shadow-2xl w-full max-w-sm"
+        className="relative bg-white md:dark:bg-gray-800 rounded-2xl overflow-hidden shadow-2xl w-full max-w-sm"
         onClick={(e) => e.stopPropagation()}
+        {...(isMobile ? {
+          initial:    { y: '80vh', rotateY: -360, opacity: 0 },
+          animate:    { y: 0,      rotateY: 0,    opacity: 1 },
+          transition: {
+            duration: 0.75,
+            ease: [0.22, 1, 0.36, 1],
+            opacity: { duration: 0.25, ease: 'easeIn' },
+          },
+          style: { transformPerspective: 900 },
+        } : {})}
       >
         {/* Close button */}
         <button
@@ -175,7 +171,7 @@ export default function EventPopup({ event, onClose }) {
             Get Tickets →
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }
