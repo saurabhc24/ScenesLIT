@@ -467,12 +467,12 @@ function UrbanautCard({ event, venue, price, date, onClick, onMouseEnter, onMous
           </div>
 
           {/* Urbanaut logo — absolutely pinned to right */}
-          <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center justify-center" style={{ width: 50 }}>
+          <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center justify-center" style={{ width: 68 }}>
             <img
               src="/logos/urbanaut-logo-light.svg"
               alt="Urbanaut"
               style={{
-                width: 80,
+                width: 110,
                 height: 'auto',
                 transform: 'rotate(-90deg)',
                 transformOrigin: 'center center',
