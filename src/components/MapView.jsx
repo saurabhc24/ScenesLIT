@@ -372,6 +372,16 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
         .clst-wrap:hover .clst-card {
           transform: rotate(var(--r)) translateY(-10px);
         }
+        .leaflet-control-attribution {
+          font-size: 9px !important;
+          opacity: 0.5;
+          background: transparent !important;
+          box-shadow: none !important;
+          padding: 0 4px !important;
+        }
+        .leaflet-control-attribution a {
+          color: inherit !important;
+        }
       `}</style>
 
       <MapContainer
