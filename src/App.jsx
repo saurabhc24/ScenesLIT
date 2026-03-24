@@ -93,7 +93,7 @@ export default function App() {
           />
         </div>
         <div className="flex-1 border border-gray-200 dark:border-gray-700 rounded-[20px] overflow-hidden">
-          <MapView ref={desktopMapRef} events={events} userLocation={userLocation} mode="desktop" hoveredEventId={hoveredEventId} />
+          <MapView ref={desktopMapRef} events={events} userLocation={userLocation} mode="desktop" hoveredEventId={hoveredEventId} darkMode={darkMode} />
         </div>
       </div>
 
@@ -122,7 +122,7 @@ export default function App() {
         {/* Map — fills remaining space, rounded corners, subtle border */}
         <div className="flex-1 min-h-0 relative">
           <div className="absolute inset-0 rounded-2xl overflow-hidden" style={{ border: '0.5px solid #C8C8C8' }}>
-            <MapView ref={mobileMapRef} events={events} userLocation={userLocation} mode="mobile" />
+            <MapView ref={mobileMapRef} events={events} userLocation={userLocation} mode="mobile" darkMode={darkMode} />
           </div>
           {showMapOverlay && (
             <div

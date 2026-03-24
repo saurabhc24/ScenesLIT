@@ -310,7 +310,7 @@ function FlyToHelper({ mapRef }) {
   return null
 }
 
-const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desktop', hoveredEventId = null }, ref) {
+const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desktop', hoveredEventId = null, darkMode = false }, ref) {
   const [popupEvent, setPopupEvent] = useState(null)
   const [clusterEvents, setClusterEvents] = useState([])
   const [showLocationBtn, setShowLocationBtn] = useState(false)
@@ -385,15 +385,26 @@ const MapView = forwardRef(function MapView({ events, userLocation, mode = 'desk
       >
         <FlyToHelper mapRef={ref} />
 
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-          subdomains="abcd"
-          maxZoom={19}
-          updateWhenIdle={true}
-          updateWhenZooming={false}
-          keepBuffer={mode === 'mobile' ? 1 : 2}
-        />
+        {darkMode ? (
+          <TileLayer
+            attribution='&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
+            maxZoom={20}
+            updateWhenIdle={true}
+            updateWhenZooming={false}
+            keepBuffer={mode === 'mobile' ? 1 : 2}
+          />
+        ) : (
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+            subdomains="abcd"
+            maxZoom={19}
+            updateWhenIdle={true}
+            updateWhenZooming={false}
+            keepBuffer={mode === 'mobile' ? 1 : 2}
+          />
+        )}
 
         <MapControls
           userLocation={userLocation}
