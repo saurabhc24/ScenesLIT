@@ -77,7 +77,7 @@ function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMous
         </div>
 
         {/* Right section: info + logo (logo is absolute so text never displaces it) */}
-        <div className="relative flex-1 flex items-center" style={{ padding: '12px 58px 12px 14px' }}>
+        <div className="relative flex-1 flex items-center" style={{ padding: '12px 76px 12px 14px' }}>
 
         {/* Text column */}
         <div className="relative z-10 w-full flex flex-col justify-center" style={{ gap: 10 }}>
@@ -119,12 +119,12 @@ function DistrictCard({ event, venue, price, date, onClick, onMouseEnter, onMous
         </div>
 
         {/* District logo — absolutely pinned to right, never displaced by text */}
-        <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center justify-center" style={{ width: 50 }}>
+        <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center justify-center" style={{ width: 68 }}>
           <img
             src="/logos/district-font-dark.png"
             alt="District"
             style={{
-              width: 72,
+              width: 110,
               height: 'auto',
               transform: 'rotate(-90deg)',
               transformOrigin: 'center center',
@@ -309,7 +309,7 @@ function LumaCard({ event, venue, price, date, onClick, onMouseEnter, onMouseLea
         </div>
 
         {/* Right section: info + logo */}
-        <div className="relative flex-1 flex items-center" style={{ padding: '12px 58px 12px 14px' }}>
+        <div className="relative flex-1 flex items-center" style={{ padding: '12px 76px 12px 14px' }}>
 
           {/* Text column */}
           <div className="relative z-10 w-full flex flex-col justify-center" style={{ gap: 10 }}>
@@ -351,12 +351,12 @@ function LumaCard({ event, venue, price, date, onClick, onMouseEnter, onMouseLea
           </div>
 
           {/* Luma logo — absolutely pinned to right, never displaced by text */}
-          <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center justify-center" style={{ width: 50 }}>
+          <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center justify-center" style={{ width: 68 }}>
             <img
               src="/logos/luma-font.svg"
               alt="Luma"
               style={{
-                width: 80,
+                width: 110,
                 height: 'auto',
                 transform: 'rotate(-90deg)',
                 transformOrigin: 'center center',
@@ -425,7 +425,7 @@ function UrbanautCard({ event, venue, price, date, onClick, onMouseEnter, onMous
         </div>
 
         {/* Right section: info + logo */}
-        <div className="relative flex-1 flex items-center" style={{ padding: '12px 58px 12px 14px' }}>
+        <div className="relative flex-1 flex items-center" style={{ padding: '12px 76px 12px 14px' }}>
 
           {/* Text column */}
           <div className="relative z-10 w-full flex flex-col justify-center" style={{ gap: 10 }}>
