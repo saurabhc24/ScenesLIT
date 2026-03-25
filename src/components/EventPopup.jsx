@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, useMap } from 'react-leaflet'
 
 const PRICE_COLORS = {
   district:   '#9D58E9',
@@ -77,7 +77,6 @@ function VenueMap({ lat, lng }) {
         subdomains="abcd"
         maxZoom={19}
       />
-      <Marker position={[lat, lng]} />
       <InvalidateSize />
     </MapContainer>
   )
@@ -113,6 +112,17 @@ export default function EventPopup({ event, onClose }) {
     } catch { /* invalid URL */ }
   }
 
+  // Responsive sizes
+  const bannerH   = isMobile ? 200 : 284
+  const titleSize = isMobile ? 22 : 32
+  const monthSize = isMobile ? 24 : 32
+  const daySize   = isMobile ? 48 : 64
+  const timeSize  = isMobile ? 24 : 32
+  const ampmSize  = isMobile ? 11 : 14
+  const mapH      = isMobile ? 100 : 140
+  const innerGap  = isMobile ? 12 : 16
+  const priceSize = isMobile ? 20 : 24
+
   return (
     <div
       className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
@@ -133,8 +143,8 @@ export default function EventPopup({ event, onClose }) {
         } : {})}
       >
 
-        {/* ── Banner image ── */}
-        <div style={{ height: 284, padding: 20, position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+        {/* ── Banner image — sits behind everything ── */}
+        <div style={{ height: bannerH, padding: 20, position: 'relative', zIndex: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
           <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
             {event.image_url ? (
               <img src={event.image_url} alt={event.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -155,19 +165,20 @@ export default function EventPopup({ event, onClose }) {
           </div>
         </div>
 
-        {/* ── Vendor info section — overlaps banner ── */}
+        {/* ── Vendor info section — overlaps and sits above banner ── */}
         <div
           style={{
             position: 'relative',
+            zIndex: 1,
             marginTop: -40,
             overflow: 'hidden',
             borderRadius: 20,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: 14,
-            paddingTop: 20,
-            paddingBottom: 22,
+            gap: isMobile ? 10 : 14,
+            paddingTop: isMobile ? 16 : 20,
+            paddingBottom: isMobile ? 16 : 22,
             paddingLeft: 10,
             paddingRight: 10,
             boxShadow: `0px 8px 7px -2px ${priceColor} inset`,
@@ -199,7 +210,7 @@ export default function EventPopup({ event, onClose }) {
             </div>
           )}
 
-          {/* White inner card — full width */}
+          {/* White inner card */}
           <div
             style={{
               position: 'relative',
@@ -207,38 +218,38 @@ export default function EventPopup({ event, onClose }) {
               alignSelf: 'stretch',
               background: 'white',
               borderRadius: 24,
-              padding: '16px 14px',
+              padding: isMobile ? '12px 12px' : '16px 14px',
               display: 'flex',
               flexDirection: 'column',
-              gap: 16,
+              gap: innerGap,
               overflow: 'hidden',
             }}
           >
             {/* Title */}
             <h2
               id="popup-event-title"
-              style={{ fontFamily: "'Lato', sans-serif", fontWeight: 700, fontSize: 32, color: 'black', lineHeight: 1.15, margin: 0 }}
+              style={{ fontFamily: "'Lato', sans-serif", fontWeight: 700, fontSize: titleSize, color: 'black', lineHeight: 1.15, margin: 0 }}
             >
               {event.title}
             </h2>
 
             {/* Date + Map row */}
-            <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', gap: innerGap, alignItems: 'flex-start' }}>
 
               {/* Left: date */}
               {dateInfo && (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
-                  <div style={{ fontFamily: "'Lato', sans-serif", fontWeight: 800, fontSize: 32, color: priceColor, lineHeight: 1 }}>
+                  <div style={{ fontFamily: "'Lato', sans-serif", fontWeight: 800, fontSize: monthSize, color: priceColor, lineHeight: 1 }}>
                     {dateInfo.month}
                   </div>
-                  <div style={{ fontFamily: "'Lato', sans-serif", fontWeight: 800, fontSize: 64, color: priceColor, lineHeight: 1 }}>
+                  <div style={{ fontFamily: "'Lato', sans-serif", fontWeight: 800, fontSize: daySize, color: priceColor, lineHeight: 1 }}>
                     {dateInfo.day}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 3 }}>
-                    <span style={{ fontFamily: "'Lato', sans-serif", fontWeight: 800, fontSize: 32, color: priceColor }}>
+                    <span style={{ fontFamily: "'Lato', sans-serif", fontWeight: 800, fontSize: timeSize, color: priceColor }}>
                       {dateInfo.time}
                     </span>
-                    <span style={{ fontFamily: "'Lato', sans-serif", fontWeight: 800, fontSize: 14, color: priceColor }}>
+                    <span style={{ fontFamily: "'Lato', sans-serif", fontWeight: 800, fontSize: ampmSize, color: priceColor }}>
                       {dateInfo.ampm}
                     </span>
                   </div>
@@ -247,7 +258,7 @@ export default function EventPopup({ event, onClose }) {
 
               {/* Right: map tile with superimposed venue name */}
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                <div style={{ position: 'relative', width: '100%', height: 140, borderRadius: 8, overflow: 'hidden' }}>
+                <div style={{ position: 'relative', width: '100%', height: mapH, borderRadius: 8, overflow: 'hidden' }}>
                   {hasCoords ? (
                     <VenueMap lat={venue.latitude} lng={venue.longitude} />
                   ) : event.image_url ? (
@@ -275,7 +286,7 @@ export default function EventPopup({ event, onClose }) {
                         style={{
                           fontFamily: "'Lato', sans-serif",
                           fontWeight: 800,
-                          fontSize: 16,
+                          fontSize: isMobile ? 14 : 16,
                           color: 'black',
                           textAlign: 'center',
                           padding: '4px 8px',
@@ -293,11 +304,11 @@ export default function EventPopup({ event, onClose }) {
 
           {/* Price */}
           <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontFamily: "'Lato', sans-serif", fontWeight: 800, fontSize: 24, color: 'white' }}>
+            <span style={{ fontFamily: "'Lato', sans-serif", fontWeight: 800, fontSize: priceSize, color: 'white' }}>
               {priceLabel}
             </span>
             {priceValue && (
-              <span style={{ fontFamily: "'Lato', sans-serif", fontWeight: 800, fontSize: 24, color: 'white' }}>
+              <span style={{ fontFamily: "'Lato', sans-serif", fontWeight: 800, fontSize: priceSize, color: 'white' }}>
                 {priceValue}
               </span>
             )}
