@@ -134,7 +134,7 @@ export default function EventPopup({ event, onClose }) {
         aria-modal="true"
         aria-labelledby="popup-event-title"
         className="relative w-full shadow-2xl cursor-pointer"
-        style={{ maxWidth: isMobile ? 384 : 440, borderRadius: 20, overflow: 'hidden' }}
+        style={{ maxWidth: isMobile ? 384 : 440, borderRadius: 20, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
         onClick={(e) => { e.stopPropagation(); openEvent() }}
         {...(isMobile ? {
           initial:    { y: '80vh', opacity: 0 },
@@ -171,7 +171,7 @@ export default function EventPopup({ event, onClose }) {
             position: 'relative',
             zIndex: 1,
             marginTop: -40,
-            width: '100%',
+            alignSelf: 'stretch',
             overflow: 'hidden',
             borderRadius: 20,
             display: 'flex',
