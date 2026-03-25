@@ -44,7 +44,11 @@ function formatStartingPrice(priceMin, priceMax, currency) {
   return { label: 'Starting', price: `${sym} ${val.toLocaleString('en-IN')}` }
 }
 
-/* Forces the map to recalculate its size after the popup animation settles */
+function shortName(name) {
+  if (!name) return ''
+  return name.split(',')[0].trim()
+}
+
 function InvalidateSize() {
   const map = useMap()
   useEffect(() => {
@@ -97,8 +101,9 @@ export default function EventPopup({ event, onClose }) {
   const dateInfo = parseDate(event.start_time)
   const { label: priceLabel, price: priceValue } = formatStartingPrice(event.price_min, event.price_max, event.currency)
   const hasCoords = venue?.latitude != null && venue?.longitude != null
+  const venueName = shortName(venue?.name)
 
-  function handleGetTickets() {
+  function openEvent() {
     if (!event.source_url) return
     try {
       const url = new URL(event.source_url)
@@ -118,9 +123,9 @@ export default function EventPopup({ event, onClose }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="popup-event-title"
-        className="relative w-full max-w-sm shadow-2xl"
-        style={{ background: 'white', borderRadius: 20, overflow: 'hidden' }}
-        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-sm shadow-2xl cursor-pointer"
+        style={{ borderRadius: 20, overflow: 'hidden' }}
+        onClick={(e) => { e.stopPropagation(); openEvent() }}
         {...(isMobile ? {
           initial:    { y: '80vh', opacity: 0 },
           animate:    { y: 0,      opacity: 1 },
@@ -129,7 +134,7 @@ export default function EventPopup({ event, onClose }) {
       >
 
         {/* ── Banner image ── */}
-        <div style={{ height: 240, padding: 16, position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+        <div style={{ height: 284, padding: 20, position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
           <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
             {event.image_url ? (
               <img src={event.image_url} alt={event.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -140,33 +145,21 @@ export default function EventPopup({ event, onClose }) {
             )}
           </div>
 
-          {/* Close — top left */}
-          <button
-            onClick={onClose}
-            aria-label="Close"
-            style={{ position: 'absolute', top: 12, left: 12, zIndex: 10, width: 32, height: 32, borderRadius: '50%', background: 'rgba(0,0,0,0.4)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}
-          >
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-
-          {/* Get Tickets arrow — top right */}
-          <button
-            onClick={handleGetTickets}
-            aria-label="Get Tickets"
-            style={{ position: 'relative', zIndex: 10, width: 48, height: 48, borderRadius: '50%', background: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.2)', flexShrink: 0 }}
+          {/* Arrow indicator — top right */}
+          <div
+            style={{ position: 'relative', zIndex: 10, width: 48, height: 48, borderRadius: '50%', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', flexShrink: 0 }}
           >
             <svg width="20" height="20" fill="none" stroke="#111" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17L17 7M7 7h10v10" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M7 17L17 7M7 7h10v10" />
             </svg>
-          </button>
+          </div>
         </div>
 
-        {/* ── Vendor section ── */}
+        {/* ── Vendor info section — overlaps banner ── */}
         <div
           style={{
             position: 'relative',
+            marginTop: -40,
             overflow: 'hidden',
             borderRadius: 20,
             display: 'flex',
@@ -174,9 +167,9 @@ export default function EventPopup({ event, onClose }) {
             alignItems: 'center',
             gap: 14,
             paddingTop: 20,
-            paddingBottom: 20,
-            paddingLeft: 14,
-            paddingRight: 14,
+            paddingBottom: 22,
+            paddingLeft: 10,
+            paddingRight: 10,
             boxShadow: `0px 8px 7px -2px ${priceColor} inset`,
           }}
         >
@@ -206,7 +199,7 @@ export default function EventPopup({ event, onClose }) {
             </div>
           )}
 
-          {/* White inner card */}
+          {/* White inner card — full width */}
           <div
             style={{
               position: 'relative',
@@ -214,78 +207,97 @@ export default function EventPopup({ event, onClose }) {
               alignSelf: 'stretch',
               background: 'white',
               borderRadius: 24,
-              padding: '14px 14px',
+              padding: '16px 14px',
               display: 'flex',
               flexDirection: 'column',
-              gap: 14,
+              gap: 16,
               overflow: 'hidden',
             }}
           >
             {/* Title */}
             <h2
               id="popup-event-title"
-              style={{ fontFamily: "'Lato', sans-serif", fontWeight: 700, fontSize: 20, color: 'black', lineHeight: 1.25, margin: 0 }}
+              style={{ fontFamily: "'Lato', sans-serif", fontWeight: 700, fontSize: 32, color: 'black', lineHeight: 1.15, margin: 0 }}
             >
               {event.title}
             </h2>
 
-            {/* Date + Map/Venue row */}
-            <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+            {/* Date + Map row */}
+            <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
 
               {/* Left: date */}
               {dateInfo && (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, width: 72 }}>
-                  <div style={{ fontFamily: "'Lato', sans-serif", fontWeight: 800, fontSize: 22, color: priceColor, lineHeight: 1.1 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+                  <div style={{ fontFamily: "'Lato', sans-serif", fontWeight: 800, fontSize: 32, color: priceColor, lineHeight: 1 }}>
                     {dateInfo.month}
                   </div>
-                  <div style={{ fontFamily: "'Lato', sans-serif", fontWeight: 800, fontSize: 52, color: priceColor, lineHeight: 1 }}>
+                  <div style={{ fontFamily: "'Lato', sans-serif", fontWeight: 800, fontSize: 64, color: priceColor, lineHeight: 1 }}>
                     {dateInfo.day}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
-                    <span style={{ fontFamily: "'Lato', sans-serif", fontWeight: 800, fontSize: 18, color: priceColor }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 3 }}>
+                    <span style={{ fontFamily: "'Lato', sans-serif", fontWeight: 800, fontSize: 32, color: priceColor }}>
                       {dateInfo.time}
                     </span>
-                    <span style={{ fontFamily: "'Lato', sans-serif", fontWeight: 800, fontSize: 11, color: priceColor }}>
+                    <span style={{ fontFamily: "'Lato', sans-serif", fontWeight: 800, fontSize: 14, color: priceColor }}>
                       {dateInfo.ampm}
                     </span>
                   </div>
                 </div>
               )}
 
-              {/* Right: map tile + venue name */}
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
-                <div style={{ width: '100%', height: 120, borderRadius: 8, overflow: 'hidden' }}>
+              {/* Right: map tile with superimposed venue name */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                <div style={{ position: 'relative', width: '100%', height: 140, borderRadius: 8, overflow: 'hidden' }}>
                   {hasCoords ? (
                     <VenueMap lat={venue.latitude} lng={venue.longitude} />
                   ) : event.image_url ? (
-                    <img
-                      src={event.image_url}
-                      alt=""
-                      aria-hidden="true"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
+                    <img src={event.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
                     <div style={{ width: '100%', height: '100%', background: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <span style={{ fontSize: 28 }}>📍</span>
                     </div>
                   )}
+
+                  {/* Venue name overlaid on map */}
+                  {venueName && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        zIndex: 500,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        pointerEvents: 'none',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontFamily: "'Lato', sans-serif",
+                          fontWeight: 800,
+                          fontSize: 16,
+                          color: 'black',
+                          textAlign: 'center',
+                          padding: '4px 8px',
+                          textShadow: '0 0 6px white, 0 0 12px white, 0 0 20px white',
+                        }}
+                      >
+                        {venueName}
+                      </span>
+                    </div>
+                  )}
                 </div>
-                {venue?.name && (
-                  <div style={{ fontFamily: "'Lato', sans-serif", fontWeight: 800, fontSize: 13, color: 'black', textAlign: 'center' }}>
-                    {venue.name}
-                  </div>
-                )}
               </div>
             </div>
           </div>
 
           {/* Price */}
           <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontFamily: "'Lato', sans-serif", fontWeight: 800, fontSize: 20, color: 'white' }}>
+            <span style={{ fontFamily: "'Lato', sans-serif", fontWeight: 800, fontSize: 24, color: 'white' }}>
               {priceLabel}
             </span>
             {priceValue && (
-              <span style={{ fontFamily: "'Lato', sans-serif", fontWeight: 800, fontSize: 20, color: 'white' }}>
+              <span style={{ fontFamily: "'Lato', sans-serif", fontWeight: 800, fontSize: 24, color: 'white' }}>
                 {priceValue}
               </span>
             )}
