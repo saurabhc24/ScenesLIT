@@ -180,8 +180,8 @@ export default function EventPopup({ event, onClose }) {
             gap: isMobile ? 10 : 14,
             paddingTop: isMobile ? 24 : 28,
             paddingBottom: isMobile ? 24 : 30,
-            paddingLeft: 18,
-            paddingRight: 18,
+            paddingLeft: 0,
+            paddingRight: 0,
             boxShadow: `0px 8px 7px -2px ${priceColor} inset`,
           }}
         >
