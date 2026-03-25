@@ -115,10 +115,10 @@ export default function EventPopup({ event, onClose }) {
   // Responsive sizes
   const bannerH   = isMobile ? 200 : 284
   const titleSize = isMobile ? 22 : 32
-  const monthSize = isMobile ? 24 : 32
-  const daySize   = isMobile ? 48 : 64
-  const timeSize  = isMobile ? 24 : 32
-  const ampmSize  = isMobile ? 11 : 14
+  const monthSize = isMobile ? 24 : 24
+  const daySize   = isMobile ? 48 : 48
+  const timeSize  = isMobile ? 24 : 24
+  const ampmSize  = isMobile ? 11 : 12
   const mapH      = isMobile ? 100 : 140
   const innerGap  = isMobile ? 12 : 16
   const priceSize = isMobile ? 20 : 24
@@ -133,8 +133,8 @@ export default function EventPopup({ event, onClose }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="popup-event-title"
-        className="relative w-full max-w-sm shadow-2xl cursor-pointer"
-        style={{ borderRadius: 20, overflow: 'hidden' }}
+        className="relative w-full shadow-2xl cursor-pointer"
+        style={{ maxWidth: isMobile ? 384 : 440, borderRadius: 20, overflow: 'hidden' }}
         onClick={(e) => { e.stopPropagation(); openEvent() }}
         {...(isMobile ? {
           initial:    { y: '80vh', opacity: 0 },
@@ -197,7 +197,9 @@ export default function EventPopup({ event, onClose }) {
                 width: '160%',
                 height: '160%',
                 objectFit: 'cover',
-                transform: 'translate(-50%, -50%) rotate(90deg)',
+                transform: isMobile
+                  ? 'translate(-50%, -50%) rotate(90deg)'
+                  : 'translate(-50%, -50%)',
                 pointerEvents: 'none',
               }}
             />
