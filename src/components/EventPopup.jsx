@@ -120,7 +120,7 @@ export default function EventPopup({ event, onClose }) {
   const timeSize  = isMobile ? 24 : 24
   const ampmSize  = isMobile ? 11 : 12
   const mapH      = isMobile ? 100 : 140
-  const innerGap  = isMobile ? 12 : 16
+  const innerGap  = isMobile ? 16 : 20
   const priceSize = isMobile ? 20 : 24
 
   return (
@@ -171,16 +171,17 @@ export default function EventPopup({ event, onClose }) {
             position: 'relative',
             zIndex: 1,
             marginTop: -40,
+            width: '100%',
             overflow: 'hidden',
             borderRadius: 20,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             gap: isMobile ? 10 : 14,
-            paddingTop: isMobile ? 16 : 20,
-            paddingBottom: isMobile ? 16 : 22,
-            paddingLeft: 10,
-            paddingRight: 10,
+            paddingTop: isMobile ? 24 : 28,
+            paddingBottom: isMobile ? 24 : 30,
+            paddingLeft: 18,
+            paddingRight: 18,
             boxShadow: `0px 8px 7px -2px ${priceColor} inset`,
           }}
         >
