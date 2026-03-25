@@ -177,7 +177,7 @@ export default function EventPopup({ event, onClose }) {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: isMobile ? 10 : 14,
+            gap: isMobile ? 24 : 28,
             paddingTop: isMobile ? 24 : 28,
             paddingBottom: isMobile ? 24 : 28,
             paddingLeft: 0,
