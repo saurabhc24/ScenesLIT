@@ -3,7 +3,11 @@ export default function Navbar({ searchTerm, onSearchChange, darkMode, onToggleD
     <header className="flex items-center justify-between px-6 py-4">
       {/* Logo */}
       <div className="flex items-center select-none" aria-label="ScenesLIT">
-        <img src="/logos/Website_logo_desktop.svg" alt="ScenesLIT" className="h-10 w-auto" />
+        <img
+          src={darkMode ? '/logos/ScenesLIT-Dark.svg' : '/logos/ScenesLIT-Light.svg'}
+          alt="ScenesLIT"
+          className="h-10 w-auto"
+        />
       </div>
 
       {/* Search */}
