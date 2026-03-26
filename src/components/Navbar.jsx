@@ -4,7 +4,7 @@ export default function Navbar({ searchTerm, onSearchChange, darkMode, onToggleD
       {/* Logo */}
       <div className="flex items-center select-none" aria-label="ScenesLIT">
         <img
-          src="/logos/ScenesLIT-logo.svg"
+          src="/logos/ScenesLIT-logo-desktop.svg"
           alt="ScenesLIT"
           style={{ height: 28 }}
           className="w-auto"
