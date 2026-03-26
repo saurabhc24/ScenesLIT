@@ -101,7 +101,7 @@ export default function App() {
       <div className="flex md:hidden flex-col flex-1 overflow-hidden bg-white dark:bg-gray-900 pt-4 px-4 gap-2">
         {/* Mobile header: Logo + Search + Dark toggle */}
         <header className="flex items-center gap-3 flex-shrink-0">
-          <div className="flex items-center px-3 py-2 select-none flex-shrink-0">
+          <div className="flex items-center select-none flex-shrink-0">
             <img src="/logos/ScenesLIT-logo.svg" alt="ScenesLIT" className="w-auto" style={{ height: 40 }} />
           </div>
           <div className="flex-1 relative">
