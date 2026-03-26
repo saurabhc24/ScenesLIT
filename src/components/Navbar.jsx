@@ -6,7 +6,7 @@ export default function Navbar({ searchTerm, onSearchChange, darkMode, onToggleD
         <img
           src={darkMode ? '/logos/ScenesLIT-Dark.svg' : '/logos/ScenesLIT-Light.svg'}
           alt="ScenesLIT"
-          className="h-10 w-auto"
+          className="h-7 w-auto"
         />
       </div>
 
