@@ -9,7 +9,7 @@ ScenesLIT aggregates live events from District by Zomato, BookMyShow, Luma, and 
 ## Screenshots
 
 <p align="center">
-  <img src="portfolio assets/ScenesLit Phone Mockup - 1.png" alt="ScenesLIT Mobile View" width="360" />
+  <img src="portfolio assets/ScenesLIT_Phone_Mockup_1.png" alt="ScenesLIT Mobile View" width="360" />
 </p>
 
 <p align="center">
