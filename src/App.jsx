@@ -156,9 +156,19 @@ export default function App() {
 
       {/* Footer */}
       <footer
-        className="flex-shrink-0 flex items-center justify-center py-2.5"
+        className="flex-shrink-0 flex items-center justify-center relative py-2.5 px-4"
         style={{ paddingBottom: 'max(0.625rem, env(safe-area-inset-bottom, 0.625rem))' }}
       >
+        {/* Peerlist — far left on desktop */}
+        <a
+          href="https://peerlist.io/saurabhc24/project/sceneslit"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="absolute left-4 hidden md:flex items-center"
+        >
+          <img src="/logos/peerlist_logo.png" alt="Peerlist" style={{ height: 28, width: 'auto' }} />
+        </a>
+
         <p style={{ fontFamily: "'Instrument Serif', serif", fontSize: '16px' }} className="text-gray-900 dark:text-gray-300">
           A passion project by{' '}
           <a
@@ -171,6 +181,16 @@ export default function App() {
             Saurabh
           </a>
         </p>
+
+        {/* Peerlist — far right on mobile */}
+        <a
+          href="https://peerlist.io/saurabhc24/project/sceneslit"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="absolute right-4 flex md:hidden items-center"
+        >
+          <img src="/logos/peerlist_logo.png" alt="Peerlist" style={{ height: 28, width: 'auto' }} />
+        </a>
       </footer>
 
       {/* Event detail popup (sidebar click or long press) */}
