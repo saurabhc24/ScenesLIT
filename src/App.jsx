@@ -164,9 +164,10 @@ export default function App() {
           href="https://peerlist.io/saurabhc24/project/sceneslit"
           target="_blank"
           rel="noopener noreferrer"
-          className="absolute left-4 hidden md:flex items-center"
+          className="absolute left-4 hidden md:flex"
+          style={{ width: 32, height: 32, borderRadius: 8, background: 'white', boxShadow: 'rgba(0,0,0,0.08) 0px 2px 8px', border: '1px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'box-shadow 0.2s' }}
         >
-          <img src="/logos/peerlist_logo.png" alt="Peerlist" style={{ height: 28, width: 'auto' }} />
+          <img src="/logos/peerlist_logo.png" alt="Peerlist" style={{ width: 16, height: 16 }} />
         </a>
 
         <p style={{ fontFamily: "'Instrument Serif', serif", fontSize: '16px' }} className="text-gray-900 dark:text-gray-300">
@@ -187,9 +188,10 @@ export default function App() {
           href="https://peerlist.io/saurabhc24/project/sceneslit"
           target="_blank"
           rel="noopener noreferrer"
-          className="absolute right-4 flex md:hidden items-center"
+          className="absolute right-4 flex md:hidden"
+          style={{ width: 32, height: 32, borderRadius: 8, background: 'white', boxShadow: 'rgba(0,0,0,0.08) 0px 2px 8px', border: '1px solid rgba(0,0,0,0.06)', alignItems: 'center', justifyContent: 'center', transition: 'box-shadow 0.2s' }}
         >
-          <img src="/logos/peerlist_logo.png" alt="Peerlist" style={{ height: 28, width: 'auto' }} />
+          <img src="/logos/peerlist_logo.png" alt="Peerlist" style={{ width: 16, height: 16 }} />
         </a>
       </footer>
 
