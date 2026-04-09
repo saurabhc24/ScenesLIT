@@ -4,8 +4,8 @@ on:
   schedule:
     # Daily at midnight IST (18:30 UTC previous day) — maintenance (cleanup + dedup)
     - cron: '30 18 * * *'
-    # Every 3rd day of month at 9:00am IST (3:30am UTC) — full scrape
-    - cron: '30 3 3,6,9,12,15,18,21,24,27,30 * *'
+    # Every 5th day from 1st at 1:00am IST (19:30 UTC previous day) — full scrape
+    - cron: '30 19 1,6,11,16,21,26,31 * *'
   workflow_dispatch:
     inputs:
       job:
@@ -51,7 +51,7 @@ jobs:
   scrape:
     if: >-
       always() && !failure() && !cancelled() && (
-        (github.event_name == 'schedule' && github.event.schedule == '30 3 3,6,9,12,15,18,21,24,27,30 * *') ||
+        (github.event_name == 'schedule' && github.event.schedule == '30 19 1,6,11,16,21,26,31 * *') ||
         github.event.inputs.job == 'scrape' ||
         github.event.inputs.job == 'both'
       )
