@@ -2,8 +2,8 @@ name: ScenesLIT Scheduled Jobs
 
 on:
   schedule:
-    # Daily at 8:30am IST (3:00am UTC) — maintenance (cleanup + dedup)
-    - cron: '0 3 * * *'
+    # Daily at midnight IST (18:30 UTC previous day) — maintenance (cleanup + dedup)
+    - cron: '30 18 * * *'
     # Every 3rd day of month at 9:00am IST (3:30am UTC) — full scrape
     - cron: '30 3 3,6,9,12,15,18,21,24,27,30 * *'
   workflow_dispatch:
